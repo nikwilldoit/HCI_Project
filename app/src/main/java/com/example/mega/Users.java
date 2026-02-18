@@ -1,4 +1,4 @@
-package com.example.phasmatic;
+package com.example.mega;
 
 public class Users {
 

@@ -1,4 +1,4 @@
-package com.example.phasmatic;
+package com.example.mega;
 
 import android.content.Intent;
 import android.os.Bundle;

@@ -1,4 +1,4 @@
-package com.example.phasmatic;
+package com.example.mega;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -14,6 +14,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.mega.R;
+
 public class MainActivity extends AppCompatActivity {
 
     EditText edtEmailAddressLog, edtPasswordLog;
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     TextView txtDisplayInfoLog;
 
+    dbConnect db;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -41,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
         btnRegisterLog = findViewById(R.id.btnRegisterLog);
 
         txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
+
+        db = new dbConnect(this);
+        db.getWritableDatabase();
 
         btnRegisterLog.setOnClickListener(new View.OnClickListener() {
             @Override
