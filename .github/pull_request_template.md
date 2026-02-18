@@ -15,9 +15,8 @@ Provide a short summary of what this Pull Request does.
 
 # How Has This Been Tested?
 
-- [ ] Ran locally
-- [ ] Unit testing
 - [ ] Manual testing
+- [ ] Unit testing
 
 ---
 
