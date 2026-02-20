@@ -4,43 +4,106 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:background="#FFF5F5F5"
     tools:context=".ui.LoginActivity">
 
-    <EditText
-        android:id="@+id/edtEmailAddressLog"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:hint="Email address"
-        android:inputType="textEmailAddress" />
+        android:layout_margin="24dp"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <EditText
-        android:id="@+id/edtPasswordLog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:hint="Password"
-        android:inputType="textPassword" />
+        <TextView
+            android:id="@+id/txtTitleLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MEGA"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#212121" />
 
-    <Button
-        android:id="@+id/btnLoginLog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Login" />
+        <TextView
+            android:id="@+id/txtSubtitleLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Sign in to continue"
+            android:textColor="#757575"
+            android:textSize="14sp" />
 
-    <Button
-        android:id="@+id/btnRegisterLog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Create new account" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#FFE0E0E0" />
 
-    <TextView
-        android:id="@+id/txtDisplayInfoLog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:paddingTop="8dp" />
+        <EditText
+            android:id="@+id/edtEmailAddressLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Email address"
+            android:inputType="textEmailAddress"
+            android:background="@android:color/transparent"
+            android:padding="0dp"
+            android:textColor="#212121"
+            android:textColorHint="#9E9E9E" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#FFE0E0E0" />
+
+        <EditText
+            android:id="@+id/edtPasswordLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:background="@android:color/transparent"
+            android:padding="0dp"
+            android:textColor="#212121"
+            android:textColorHint="#9E9E9E" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#FFE0E0E0" />
+
+        <Button
+            android:id="@+id/btnLoginLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="#FF3949AB"
+            android:text="Login"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnRegisterLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@android:color/transparent"
+            android:text="Create new account"
+            android:textAllCaps="false"
+            android:textColor="#FF3949AB" />
+
+        <TextView
+            android:id="@+id/txtDisplayInfoLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text=""
+            android:textColor="#2FD342"
+            android:textSize="13sp" />
+    </LinearLayout>
 
 </LinearLayout>
