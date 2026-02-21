@@ -1,50 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:padding="24dp"
+    android:background="#FF1E3A5F"
+    tools:context=".ui.LoginActivity">
+
+    <TextView
+        android:id="@+id/txtTitleLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MEGA"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/txtSubtitleLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Sign in to plan your mobility"
+        android:textSize="14sp"
+        android:textColor="#B3FFFFFF" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="24dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Email"
+        android:textColor="#B3FFFFFF"
+        android:textSize="13sp" />
 
     <EditText
         android:id="@+id/edtEmailAddressLog"
         android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp"
+        android:background="@android:color/white"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:hint="you@example.com"
+        android:inputType="textEmailAddress"
+        android:textColor="#212121"
+        android:textColorHint="#9E9E9E" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Email Address"
-        android:inputType="text" />
+        android:text="Password"
+        android:textColor="#B3FFFFFF"
+        android:textSize="13sp" />
 
     <EditText
         android:id="@+id/edtPasswordLog"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Password"
-        android:inputType="text"
-        android:minHeight="48dp" />
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp"
+        android:background="@android:color/white"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:hint="••••••••"
+        android:inputType="textPassword"
+        android:textColor="#212121"
+        android:textColorHint="#9E9E9E" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="24dp" />
 
     <Button
         android:id="@+id/btnLoginLog"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Login" />
+        android:layout_height="48dp"
+        android:backgroundTint="#FF4CAF50"
+        android:text="Login"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textColor="@android:color/white" />
 
     <Button
         android:id="@+id/btnRegisterLog"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Register" />
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@android:color/transparent"
+        android:text="Create new account"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        android:textColor="#FFBBDEFB" />
 
     <TextView
         android:id="@+id/txtDisplayInfoLog"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="."
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginTop="8dp"
+        android:text=""
+        android:textColor="#FFFFCDD2"
+        android:textSize="13sp" />
 
 </LinearLayout>
