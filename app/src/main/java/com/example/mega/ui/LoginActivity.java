@@ -41,6 +41,9 @@ public class LoginActivity extends AppCompatActivity {
         btnRegisterLog = findViewById(R.id.btnRegisterLog);
         txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
 
+        //copy to assets/mega.db sto internal /databases/
+        copyMegaDbIfNeeded();
+
         db = new DbConnect(this);
 
         btnRegisterLog.setOnClickListener(v -> {
@@ -68,4 +71,28 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+private void copyMegaDbIfNeeded() {
+    java.io.File dbFile = getDatabasePath("mega.db");
+
+    if (dbFile.exists()) return;
+
+    if (dbFile.getParentFile() != null && !dbFile.getParentFile().exists()) {
+        dbFile.getParentFile().mkdirs();
+    }
+
+    try (java.io.InputStream input = getAssets().open("mega.db");
+         java.io.OutputStream output = new java.io.FileOutputStream(dbFile)) {
+
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = input.read(buffer)) > 0) {
+            output.write(buffer, 0, length);
+        }
+        output.flush();
+    } catch (java.io.IOException e) {
+        e.printStackTrace();
+        txtDisplayInfoLog.setText("Error copying mega.db");
+    }
+}
+
 }

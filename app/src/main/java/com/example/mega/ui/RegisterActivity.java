@@ -9,9 +9,6 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.mega.R;
 import com.example.mega.data.db.DbConnect;
@@ -48,6 +45,7 @@ public class RegisterActivity extends AppCompatActivity {
         btnLoginReg.setOnClickListener(v -> {
             Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(i);
+            finish();
         });
 
         btnRegisterReg.setOnClickListener(v -> {
@@ -70,7 +68,12 @@ public class RegisterActivity extends AppCompatActivity {
 
             txtDisplayInfoReg.setText("User registered: " + fullname);
             Toast.makeText(RegisterActivity.this,
-                    "Registration successful", Toast.LENGTH_SHORT).show();
+                    "Registration successful",
+                    Toast.LENGTH_SHORT).show();
+
+            Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(i);
+            finish();
         });
     }
 }

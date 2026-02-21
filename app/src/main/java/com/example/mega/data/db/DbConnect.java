@@ -12,7 +12,7 @@ import com.example.mega.data.model.User;
 
 public class DbConnect extends SQLiteOpenHelper {
 
-    private static final String DB_NAME = "HCIDB";
+    private static final String DB_NAME = "mega.db";
     private static final int DB_VERSION = 1;
 
     public static final String TABLE_USERS = "users";
@@ -32,7 +32,7 @@ public class DbConnect extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String query =
-                "CREATE TABLE " + TABLE_USERS + " (" +
+                "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + " (" +
                         COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         COL_FULLNAME + " TEXT, " +
                         COL_EMAIL + " TEXT, " +
@@ -46,8 +46,6 @@ public class DbConnect extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        onCreate(db);
     }
 
     public void insertUser(User user) {
@@ -66,6 +64,8 @@ public class DbConnect extends SQLiteOpenHelper {
     }
 
     public boolean checkUserCredentials(String email, String password) {
+        android.util.Log.d("LOGIN_TEST", "email=" + email + ", pass=" + password);
+
         SQLiteDatabase db = this.getReadableDatabase();
 
         String sql = "SELECT " + COL_ID +
@@ -73,10 +73,13 @@ public class DbConnect extends SQLiteOpenHelper {
                 " WHERE " + COL_EMAIL + " = ? AND " + COL_PASSWORD + " = ?";
 
         Cursor cursor = db.rawQuery(sql, new String[]{ email, password });
+        android.util.Log.d("LOGIN_TEST", "rows = " + cursor.getCount());
+
         boolean exists = cursor.moveToFirst();
 
         cursor.close();
         db.close();
         return exists;
     }
+
 }
