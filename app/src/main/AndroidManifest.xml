@@ -24,6 +24,11 @@
         <activity
             android:name=".ui.RegisterActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.ModeSelectionActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

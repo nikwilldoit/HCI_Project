@@ -60,7 +60,9 @@ public class LoginActivity extends AppCompatActivity {
             boolean ok = db.checkUserCredentials(email, password);
 
             if (ok) {
-                txtDisplayInfoLog.setText("Login successful");
+                Intent i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
+                startActivity(i);
+                finish();
             } else {
                 txtDisplayInfoLog.setText("Incorrect email or password");
             }
