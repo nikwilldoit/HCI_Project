@@ -86,7 +86,6 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         btnCaptureFace.setOnClickListener(v -> {
-            // δείξε κάμερα, κρύψε φόρμα
             cameraLayout.setVisibility(View.VISIBLE);
             registerLayout.setVisibility(View.GONE);
             checkCameraPermission();
@@ -231,7 +230,7 @@ public class RegisterActivity extends AppCompatActivity {
                         capturedEmbedding = new float[128];
                         for (int i = 0; i < 128; i++) capturedEmbedding[i] = (float) Math.random();
 
-                        // επιστροφή στη φόρμα
+                        //return to register
                         cameraLayout.setVisibility(View.GONE);
                         registerLayout.setVisibility(View.VISIBLE);
                     }

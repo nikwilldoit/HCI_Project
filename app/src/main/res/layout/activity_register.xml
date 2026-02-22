@@ -7,7 +7,7 @@
     android:background="#FF1E3A5F"
     tools:context=".ui.RegisterActivity">
 
-    <!-- Registration Form -->
+
     <ScrollView
         android:id="@+id/registerLayout"
         android:layout_width="match_parent"
@@ -41,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="24dp" />
 
-            <!-- Full Name -->
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -63,7 +63,7 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <!-- Email -->
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,7 +85,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <!-- Password -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,7 +106,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <!-- Date of birth -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -129,7 +127,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <!-- Phone -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -151,7 +148,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <!-- Bio -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -174,7 +170,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="24dp" />
 
-            <!-- Capture Face Button -->
             <Button
                 android:id="@+id/btnCaptureFace"
                 android:layout_width="match_parent"
@@ -187,7 +182,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <!-- Register Button -->
             <Button
                 android:id="@+id/btnRegisterReg"
                 android:layout_width="match_parent"
@@ -221,7 +215,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Camera Overlay (hidden by default) -->
     <FrameLayout
         android:id="@+id/cameraLayout"
         android:layout_width="match_parent"
