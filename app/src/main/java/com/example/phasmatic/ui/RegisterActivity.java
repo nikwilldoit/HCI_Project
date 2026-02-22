@@ -76,7 +76,6 @@ public class RegisterActivity extends AppCompatActivity {
                     "userId = " + userId, Toast.LENGTH_SHORT).show();
 
             if (userId != null) {
-                // 2) Το περνάμε και μέσα στο User
                 User user = new User(userId, fullname, email, password, dob, phone, bio);
 
                 usersRef.child(userId).setValue(user)
