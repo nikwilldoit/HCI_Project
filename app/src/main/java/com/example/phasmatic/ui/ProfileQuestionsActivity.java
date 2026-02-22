@@ -1,4 +1,4 @@
-package com.example.mega.ui;
+package com.example.phasmatic.ui;
 
 public class ProfileQuestionsActivity {
 }

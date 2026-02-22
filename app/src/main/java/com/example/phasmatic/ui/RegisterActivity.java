@@ -1,4 +1,4 @@
-package com.example.mega.ui;
+package com.example.phasmatic.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,9 +10,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.mega.R;
-import com.example.mega.data.db.DbConnect;
-import com.example.mega.data.model.User;
+import com.example.phasmatic.R;
+import com.example.phasmatic.data.model.User;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -21,7 +22,7 @@ public class RegisterActivity extends AppCompatActivity {
     Button btnRegisterReg, btnLoginReg;
     TextView txtDisplayInfoReg;
 
-    DbConnect db;
+    DatabaseReference usersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,10 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegisterReg = findViewById(R.id.btnRegisterReg);
         txtDisplayInfoReg = findViewById(R.id.txtDisplayInfoReg);
 
-        db = new DbConnect(this);
+        FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
+                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+        );
+        usersRef = firebaseDb.getReference("users");
 
         btnLoginReg.setOnClickListener(v -> {
             Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
@@ -49,6 +53,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         btnRegisterReg.setOnClickListener(v -> {
+            Toast.makeText(RegisterActivity.this,
+                    "Register clicked", Toast.LENGTH_SHORT).show();
+
             String fullname = edtFullNameReg.getText().toString().trim();
             String email = edtEmailAddressReg.getText().toString().trim();
             String password = edtPasswordReg.getText().toString().trim();
@@ -63,17 +70,42 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
-            User user = new User(0, fullname, email, password, dob, phone, bio);
-            db.insertUser(user);
-
-            txtDisplayInfoReg.setText("User registered: " + fullname);
+            //ws id pernaw to firebase key
+            String userId = usersRef.push().getKey();
             Toast.makeText(RegisterActivity.this,
-                    "Registration successful",
-                    Toast.LENGTH_SHORT).show();
+                    "userId = " + userId, Toast.LENGTH_SHORT).show();
 
-            Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(i);
-            finish();
+            if (userId != null) {
+                // 2) Το περνάμε και μέσα στο User
+                User user = new User(userId, fullname, email, password, dob, phone, bio);
+
+                usersRef.child(userId).setValue(user)
+                        .addOnSuccessListener(unused -> {
+                            android.util.Log.d("FIREBASE_TEST", "SUCCESS WRITE");
+                            Toast.makeText(RegisterActivity.this,
+                                    "Registration successful",
+                                    Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent(
+                                    RegisterActivity.this,
+                                    LoginActivity.class
+                            );
+                            startActivity(intent);
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            android.util.Log.e("FIREBASE_TEST",
+                                    "FAIL WRITE", e);
+                            Toast.makeText(RegisterActivity.this,
+                                    "Firebase error: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        });
+            } else {
+                Toast.makeText(RegisterActivity.this,
+                        "Could not generate user id",
+                        Toast.LENGTH_SHORT).show();
+            }
         });
+
     }
 }

@@ -1,4 +1,4 @@
-package com.example.mega.ui;
+package com.example.phasmatic.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -12,7 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.mega.R;
+import com.example.phasmatic.R;
 
 public class ModeSelectionActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.example.mega;
+package com.example.phasmatic;
 
 import org.junit.Test;
 
