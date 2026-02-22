@@ -1,215 +1,238 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FF1E3A5F"
-    android:padding="24dp"
     tools:context=".ui.RegisterActivity">
 
-    <LinearLayout
+
+    <ScrollView
+        android:id="@+id/registerLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:padding="24dp">
 
-        <TextView
-            android:id="@+id/txtTitleRegister"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Create account"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white" />
-
-        <TextView
-            android:id="@+id/txtSubtitleRegister"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Join MEGA"
-            android:textSize="14sp"
-            android:textColor="#B3FFFFFF" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="24dp" />
-
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Full name"
-            android:textColor="#B3FFFFFF"
-            android:textSize="13sp" />
+            android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/edtFullName"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/white"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:hint="Your name"
-            android:inputType="textPersonName"
-            android:textColor="#212121"
-            android:textColorHint="#9E9E9E" />
+            <TextView
+                android:id="@+id/txtTitleRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create account"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+            <TextView
+                android:id="@+id/txtSubtitleRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Join MEGA"
+                android:textSize="14sp"
+                android:textColor="#B3FFFFFF" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Email"
-            android:textColor="#B3FFFFFF"
-            android:textSize="13sp" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="24dp" />
 
-        <EditText
-            android:id="@+id/edtEmailAddressReg"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/white"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:hint="you@example.com"
-            android:inputType="textEmailAddress"
-            android:textColor="#212121"
-            android:textColorHint="#9E9E9E" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Full name"
+                android:textColor="#B3FFFFFF"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/edtFullName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:hint="Your name"
+                android:inputType="textPersonName"
+                android:textColor="#212121"
+                android:textColorHint="#9E9E9E" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Password"
-            android:textColor="#B3FFFFFF"
-            android:textSize="13sp" />
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-        <EditText
-            android:id="@+id/edtPasswordReg"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/white"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:hint="••••••••"
-            android:inputType="textPassword"
-            android:textColor="#212121"
-            android:textColorHint="#9E9E9E" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Email"
+                android:textColor="#B3FFFFFF"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/edtEmailAddressReg"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:hint="you@example.com"
+                android:inputType="textEmailAddress"
+                android:textColor="#212121"
+                android:textColorHint="#9E9E9E" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Date of birth"
-            android:textColor="#B3FFFFFF"
-            android:textSize="13sp" />
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-        <EditText
-            android:id="@+id/edtDateOfBirthReg"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/white"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:hint="DD/MM/YYYY"
-            android:inputType="date"
-            android:textColor="#212121"
-            android:textColorHint="#9E9E9E" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Password"
+                android:textColor="#B3FFFFFF"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/edtPasswordReg"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:hint="••••••••"
+                android:inputType="textPassword"
+                android:textColor="#212121"
+                android:textColorHint="#9E9E9E" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Phone number"
-            android:textColor="#B3FFFFFF"
-            android:textSize="13sp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Date of birth"
+                android:textColor="#B3FFFFFF"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/edtDateOfBirthReg"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:hint="DD/MM/YYYY"
+                android:inputType="date"
+                android:textColor="#212121"
+                android:textColorHint="#9E9E9E" />
 
-        <EditText
-            android:id="@+id/edtPhoneNumberReg"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/white"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:hint="+30 69..."
-            android:inputType="phone"
-            android:textColor="#212121"
-            android:textColorHint="#9E9E9E" />
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Phone number"
+                android:textColor="#B3FFFFFF"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/edtPhoneNumberReg"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:hint="+30 69..."
+                android:inputType="phone"
+                android:textColor="#212121"
+                android:textColorHint="#9E9E9E" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Short bio"
-            android:textColor="#B3FFFFFF"
-            android:textSize="13sp" />
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-        <EditText
-            android:id="@+id/edtBioReg"
-            android:layout_width="match_parent"
-            android:layout_height="96dp"
-            android:layout_marginTop="4dp"
-            android:background="@android:color/white"
-            android:gravity="top"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:hint="Tell us a bit about your interests"
-            android:inputType="textMultiLine"
-            android:textColor="#212121"
-            android:textColorHint="#9E9E9E" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Short bio"
+                android:textColor="#B3FFFFFF"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/edtBioReg"
+                android:layout_width="match_parent"
+                android:layout_height="96dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:gravity="top"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:hint="Tell us a bit about your interests"
+                android:inputType="textMultiLine"
+                android:textColor="#212121"
+                android:textColorHint="#9E9E9E" />
 
-        <Space
+            <Space android:layout_width="match_parent" android:layout_height="24dp" />
+
+            <Button
+                android:id="@+id/btnCaptureFace"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:backgroundTint="#FF2196F3"
+                android:text="Capture your face"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"/>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <Button
+                android:id="@+id/btnRegisterReg"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:backgroundTint="#FF4CAF50"
+                android:text="Create account"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/btnLoginReg"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="@android:color/transparent"
+                android:text="Already have an account? Login"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                android:textColor="#FFBBDEFB" />
+
+            <TextView
+                android:id="@+id/txtDisplayInfoReg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text=""
+                android:textColor="#FFFFCDD2"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/cameraLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/viewFinder"
             android:layout_width="match_parent"
-            android:layout_height="24dp" />
+            android:layout_height="match_parent" />
 
         <Button
-            android:id="@+id/btnRegisterReg"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:backgroundTint="#FF4CAF50"
-            android:text="Create account"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textColor="@android:color/white" />
-
-        <Button
-            android:id="@+id/btnLoginReg"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="@android:color/transparent"
-            android:text="Already have an account? Login"
-            android:textAllCaps="false"
-            android:textSize="14sp"
-            android:textColor="#FFBBDEFB" />
-
-        <TextView
-            android:id="@+id/txtDisplayInfoReg"
-            android:layout_width="match_parent"
+            android:id="@+id/btnTakePhoto"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text=""
-            android:textColor="#FFFFCDD2"
-            android:textSize="13sp" />
+            android:layout_gravity="bottom|center"
+            android:layout_marginBottom="50dp"
+            android:text="Take Photo"/>
+    </FrameLayout>
 
-    </LinearLayout>
-
-</ScrollView>
+</FrameLayout>
