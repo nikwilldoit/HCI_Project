@@ -1,13 +1,18 @@
 package com.example.phasmatic.ui;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -183,46 +188,47 @@ public class LoginActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
     private void takePhoto() {
+        // Δημιουργία ονόματος αρχείου με timestamp
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+                .format(System.currentTimeMillis());
 
-        if (imageCapture == null) {
-            txtDisplayInfoLog.setText("Camera not ready");
-            return;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timeStamp);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image");
         }
 
-        File photoDir = new File(getExternalFilesDir(null), "photos");
-        if (!photoDir.exists()) photoDir.mkdirs();
-
-        File photoFile = new File(photoDir,
-                System.currentTimeMillis() + ".jpg");
-
+        // Δημιουργία OutputFileOptions (πού θα σωθεί η φωτό)
         ImageCapture.OutputFileOptions outputOptions =
-                new ImageCapture.OutputFileOptions.Builder(photoFile).build();
+                new ImageCapture.OutputFileOptions.Builder(
+                        getContentResolver(),
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                ).build();
 
+        // Κλήση takePicture
         imageCapture.takePicture(
                 outputOptions,
                 ContextCompat.getMainExecutor(this),
                 new ImageCapture.OnImageSavedCallback() {
-
                     @Override
-                    public void onImageSaved(
-                            @NonNull ImageCapture.OutputFileResults outputFileResults) {
-
-                        txtDisplayInfoLog.setText("PHOTO SAVED ✅");
-
-                        // 🔥 IMPORTANT: δείξε το path
-                        System.out.println("PATH: " + photoFile.getAbsolutePath());
+                    public void onError(@NonNull ImageCaptureException exc) {
+                        Log.e("CameraX", "Photo capture failed: " + exc.getMessage(), exc);
                     }
 
                     @Override
-                    public void onError(
-                            @NonNull ImageCaptureException exception) {
+                    public void onImageSaved(
+                            @NonNull ImageCapture.OutputFileResults output) {
 
-                        txtDisplayInfoLog.setText("ERROR: " + exception.getMessage());
-                        exception.printStackTrace();
+                        String msg = "Photo capture succeeded: " + output.getSavedUri();
+                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                        Log.d("CameraX", msg);
                     }
                 }
         );
     }
+
 
 
     // =========================================================
