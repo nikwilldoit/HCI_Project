@@ -1,7 +1,9 @@
 package com.example.phasmatic.ui;
 
+import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -26,17 +28,12 @@ import androidx.core.content.ContextCompat;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.common.util.concurrent.ListenableFuture;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -50,7 +47,9 @@ public class RegisterActivity extends AppCompatActivity {
 
     private PreviewView viewFinder;
     private ImageCapture imageCapture;
-    FrameLayout cameraLayout = findViewById(R.id.cameraLayout);
+    private FrameLayout cameraLayout;
+    private View registerLayout;
+
     private float[] capturedEmbedding = null;
 
     @Override
@@ -58,21 +57,22 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-
         edtEmailAddressReg = findViewById(R.id.edtEmailAddressReg);
-        edtPasswordReg = findViewById(R.id.edtPasswordReg);
-        edtFullNameReg = findViewById(R.id.edtFullName);
-        edtDateOfBirthReg = findViewById(R.id.edtDateOfBirthReg);
-        edtPhoneNumberReg = findViewById(R.id.edtPhoneNumberReg);
-        edtBioReg = findViewById(R.id.edtBioReg);
+        edtPasswordReg     = findViewById(R.id.edtPasswordReg);
+        edtFullNameReg     = findViewById(R.id.edtFullName);
+        edtDateOfBirthReg  = findViewById(R.id.edtDateOfBirthReg);
+        edtPhoneNumberReg  = findViewById(R.id.edtPhoneNumberReg);
+        edtBioReg          = findViewById(R.id.edtBioReg);
 
-        btnLoginReg = findViewById(R.id.btnLoginReg);
+        btnLoginReg    = findViewById(R.id.btnLoginReg);
         btnRegisterReg = findViewById(R.id.btnRegisterReg);
         btnCaptureFace = findViewById(R.id.btnCaptureFace);
-        btnTakePhoto = findViewById(R.id.btnTakePhoto);
+        btnTakePhoto   = findViewById(R.id.btnTakePhoto);
         txtDisplayInfoReg = findViewById(R.id.txtDisplayInfoReg);
 
-        viewFinder = findViewById(R.id.viewFinder);
+        cameraLayout   = findViewById(R.id.cameraLayout);
+        registerLayout = findViewById(R.id.registerLayout);
+        viewFinder     = findViewById(R.id.viewFinder);
 
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
@@ -86,7 +86,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         btnCaptureFace.setOnClickListener(v -> {
+            // δείξε κάμερα, κρύψε φόρμα
             cameraLayout.setVisibility(View.VISIBLE);
+            registerLayout.setVisibility(View.GONE);
             checkCameraPermission();
         });
 
@@ -97,11 +99,11 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void registerUser() {
         String fullname = edtFullNameReg.getText().toString().trim();
-        String email = edtEmailAddressReg.getText().toString().trim();
+        String email    = edtEmailAddressReg.getText().toString().trim();
         String password = edtPasswordReg.getText().toString().trim();
-        String dob = edtDateOfBirthReg.getText().toString().trim();
-        String phone = edtPhoneNumberReg.getText().toString().trim();
-        String bio = edtBioReg.getText().toString().trim();
+        String dob      = edtDateOfBirthReg.getText().toString().trim();
+        String phone    = edtPhoneNumberReg.getText().toString().trim();
+        String bio      = edtBioReg.getText().toString().trim();
 
         if (fullname.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Full name, email and password are required",
@@ -131,10 +133,11 @@ public class RegisterActivity extends AppCompatActivity {
 
             List<Double> embeddingList = new ArrayList<>();
             for (float f : capturedEmbedding) embeddingList.add((double) f);
-
             usersRef.child(userId).child("faceEmbedding").setValue(embeddingList);
         }
     }
+
+    // ================= CAMERA =================
 
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -160,8 +163,8 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
-        viewFinder.setVisibility(android.view.View.VISIBLE);
-        btnTakePhoto.setVisibility(android.view.View.VISIBLE);
+        viewFinder.setVisibility(View.VISIBLE);
+        btnTakePhoto.setVisibility(View.VISIBLE);
 
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(this);
@@ -185,8 +188,14 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void takePhoto() {
+
+        if (imageCapture == null) {
+            Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String fullName = edtFullNameReg.getText().toString().trim();
-        if(fullName.isEmpty()){
+        if (fullName.isEmpty()) {
             Toast.makeText(this, "Please enter your full name first", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -218,10 +227,13 @@ public class RegisterActivity extends AppCompatActivity {
                         Toast.makeText(RegisterActivity.this,
                                 "Face Captured!", Toast.LENGTH_SHORT).show();
 
+                        // dummy embedding
                         capturedEmbedding = new float[128];
                         for (int i = 0; i < 128; i++) capturedEmbedding[i] = (float) Math.random();
 
-                        cameraLayout.setVisibility(View.GONE);  // Κρύβει το overlay μετά τη φωτογραφία
+                        // επιστροφή στη φόρμα
+                        cameraLayout.setVisibility(View.GONE);
+                        registerLayout.setVisibility(View.VISIBLE);
                     }
                 });
     }
