@@ -1,18 +1,24 @@
 package com.example.phasmatic.ui;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -26,6 +32,13 @@ import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.*;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -34,8 +47,10 @@ public class LoginActivity extends AppCompatActivity {
     TextView txtDisplayInfoLog;
 
     DatabaseReference usersRef;
+    private ImageCapture imageCapture;
+    private Button captureButton;
 
-    // 🔹 Camera
+    //Camera
     private PreviewView viewFinder;
     private View cameraLayout, loginLayout;
 
@@ -56,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
                     return insets;
                 });
 
-        // 🔹 UI
+        //UI
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
         edtPasswordLog = findViewById(R.id.edtPasswordLog);
         btnLoginLog = findViewById(R.id.btnLoginLog);
@@ -68,19 +83,19 @@ public class LoginActivity extends AppCompatActivity {
         cameraLayout = findViewById(R.id.cameraLayout);
         loginLayout = findViewById(R.id.loginLayout);
 
-        // 🔹 Firebase
+        //Firebase
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
 
-        // 🔹 Register
+        //Register
         btnRegisterLog.setOnClickListener(v -> {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
 
-        // 🔹 Normal Login
+        //Normal Login
         btnLoginLog.setOnClickListener(v -> {
             String email = edtEmailAddressLog.getText().toString().trim();
             String password = edtPasswordLog.getText().toString().trim();
@@ -93,12 +108,17 @@ public class LoginActivity extends AppCompatActivity {
             loginWithFirebase(email, password);
         });
 
-        // 🔥 Face Login
+        //Face Login
+
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
+        captureButton = findViewById(R.id.image_capture_button);
+
+        captureButton.setOnClickListener(v -> takePhoto());
     }
 
+
     // =========================================================
-    // 🔐 CAMERA PERMISSION
+    //CAMERA PERMISSION
     // =========================================================
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -130,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     // =========================================================
-    // 📷 START CAMERA (CameraX)
+    //START CAMERA (CameraX)
     // =========================================================
     private void startCamera() {
 
@@ -148,6 +168,8 @@ public class LoginActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
 
+                imageCapture = new ImageCapture.Builder().build();
+
                 CameraSelector cameraSelector =
                         CameraSelector.DEFAULT_FRONT_CAMERA;
 
@@ -156,7 +178,8 @@ public class LoginActivity extends AppCompatActivity {
                 cameraProvider.bindToLifecycle(
                         this,
                         cameraSelector,
-                        preview
+                        preview,
+                        imageCapture
                 );
 
             } catch (Exception e) {
@@ -164,9 +187,52 @@ public class LoginActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
     }
+    private void takePhoto() {
+        // Δημιουργία ονόματος αρχείου με timestamp
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+                .format(System.currentTimeMillis());
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timeStamp);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image");
+        }
+
+        // Δημιουργία OutputFileOptions (πού θα σωθεί η φωτό)
+        ImageCapture.OutputFileOptions outputOptions =
+                new ImageCapture.OutputFileOptions.Builder(
+                        getContentResolver(),
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                ).build();
+
+        // Κλήση takePicture
+        imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(this),
+                new ImageCapture.OnImageSavedCallback() {
+                    @Override
+                    public void onError(@NonNull ImageCaptureException exc) {
+                        Log.e("CameraX", "Photo capture failed: " + exc.getMessage(), exc);
+                    }
+
+                    @Override
+                    public void onImageSaved(
+                            @NonNull ImageCapture.OutputFileResults output) {
+
+                        String msg = "Photo capture succeeded: " + output.getSavedUri();
+                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                        Log.d("CameraX", msg);
+                    }
+                }
+        );
+    }
+
+
 
     // =========================================================
-    // 🔐 FIREBASE LOGIN (ΟΠΩΣ ΕΙΧΕΣ)
+    //FIREBASE LOGIN
     // =========================================================
     private void loginWithFirebase(String email, String password) {
         usersRef.orderByChild("email")
