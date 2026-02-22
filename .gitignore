@@ -25,3 +25,5 @@ gradle/libs.versions.toml
 
 Gradle cache/build
 .gradle/
+
+build/
