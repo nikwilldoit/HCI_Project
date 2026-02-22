@@ -188,6 +188,11 @@ public class LoginActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
     private void takePhoto() {
+        if (imageCapture == null) {
+            Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
                 .format(System.currentTimeMillis());
 
@@ -197,7 +202,6 @@ public class LoginActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image");
         }
-
 
         ImageCapture.OutputFileOptions outputOptions =
                 new ImageCapture.OutputFileOptions.Builder(
@@ -222,10 +226,15 @@ public class LoginActivity extends AppCompatActivity {
                         String msg = "Photo capture succeeded: " + output.getSavedUri();
                         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
                         Log.d("CameraX", msg);
+
+                        // 🔹 ΕΠΙΣΤΡΟΦΗ ΣΤΟ LOGIN UI
+                        cameraLayout.setVisibility(View.GONE);
+                        loginLayout.setVisibility(View.VISIBLE);
                     }
                 }
         );
     }
+
 
 
 
