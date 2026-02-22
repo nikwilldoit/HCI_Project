@@ -22,3 +22,6 @@ rad.json
 TestResults.xml
 
 gradle/libs.versions.toml
+
+Gradle cache/build
+.gradle/
