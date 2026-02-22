@@ -4,6 +4,9 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -35,8 +38,14 @@ import com.google.firebase.database.*;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 
+import org.tensorflow.lite.Interpreter;
+
 import java.io.File;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -53,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
     //Camera
     private PreviewView viewFinder;
     private View cameraLayout, loginLayout;
-
+    private Interpreter tflite;
     private static final int CAMERA_PERMISSION_CODE = 100;
 
     @Override
@@ -114,6 +123,21 @@ public class LoginActivity extends AppCompatActivity {
         captureButton = findViewById(R.id.image_capture_button);
 
         captureButton.setOnClickListener(v -> takePhoto());
+
+        try {
+            InputStream is = getAssets().open("facenet.tflite");
+            byte[] model = new byte[is.available()];
+            is.read(model);
+            is.close();
+
+            ByteBuffer buffer = ByteBuffer.allocateDirect(model.length)
+                    .order(ByteOrder.nativeOrder());
+            buffer.put(model);
+            tflite = new Interpreter(buffer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 
@@ -220,14 +244,53 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onImageSaved(
-                            @NonNull ImageCapture.OutputFileResults output) {
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
 
-                        String msg = "Photo capture succeeded: " + output.getSavedUri();
-                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-                        Log.d("CameraX", msg);
+                        Toast.makeText(LoginActivity.this,
+                                "Face Captured!", Toast.LENGTH_SHORT).show();
 
-                        // 🔹 ΕΠΙΣΤΡΟΦΗ ΣΤΟ LOGIN UI
+                        try {
+                            Uri imageUri = output.getSavedUri();
+                            if (imageUri == null) {
+                                Toast.makeText(LoginActivity.this,
+                                        "Image URI is null", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+                            InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
+
+                            if (bitmap == null) {
+                                Toast.makeText(LoginActivity.this,
+                                        "Bitmap decode failed", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
+                            Bitmap cropped = Bitmap.createBitmap(
+                                    bitmap,
+                                    (bitmap.getWidth() - size) / 2,
+                                    (bitmap.getHeight() - size) / 2,
+                                    size,
+                                    size
+                            );
+
+                            Bitmap resized = Bitmap.createScaledBitmap(cropped, 160, 160, true);
+
+                            float[] inputEmbedding = runModel(resized);
+
+                            // 🔹 Compare with Firebase embeddings
+                            loginWithFace(inputEmbedding);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(LoginActivity.this,
+                                    "Processing error", Toast.LENGTH_SHORT).show();
+                        }
+
                         cameraLayout.setVisibility(View.GONE);
                         loginLayout.setVisibility(View.VISIBLE);
                     }
@@ -236,7 +299,29 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
+    private float[] runModel(Bitmap bitmap) {
 
+        ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
+        inputBuffer.order(ByteOrder.nativeOrder());
+
+        int[] pixels = new int[160 * 160];
+        bitmap.getPixels(pixels, 0, 160, 0, 0, 160, 160);
+
+        for (int pixel : pixels) {
+            float r = ((pixel >> 16) & 0xFF) / 255.0f;
+            float g = ((pixel >> 8) & 0xFF) / 255.0f;
+            float b = (pixel & 0xFF) / 255.0f;
+
+            inputBuffer.putFloat(r);
+            inputBuffer.putFloat(g);
+            inputBuffer.putFloat(b);
+        }
+
+        float[][] output = new float[1][128];
+        tflite.run(inputBuffer, output);
+
+        return output[0];
+    }
 
     // =========================================================
     //FIREBASE LOGIN
@@ -278,4 +363,55 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
+    private void loginWithFace(float[] inputEmbedding) {
+
+        usersRef.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) return;
+
+            float maxSimilarity = -1f;
+            String matchedUserId = null;
+
+            for (DataSnapshot userSnapshot : task.getResult().getChildren()) {
+                List<Double> dbEmbeddingList = (List<Double>) userSnapshot.child("faceEmbedding").getValue();
+                if (dbEmbeddingList == null) continue;
+
+                float[] dbEmbedding = new float[dbEmbeddingList.size()];
+                for (int i = 0; i < dbEmbeddingList.size(); i++) {
+                    dbEmbedding[i] = dbEmbeddingList.get(i).floatValue();
+                }
+
+                float similarity = cosineSimilarity(inputEmbedding, dbEmbedding);
+                Log.d("SIMILARITY", "User " + userSnapshot.getKey() + ": " + similarity);
+
+                if (similarity > maxSimilarity) {
+                    maxSimilarity = similarity;
+                    matchedUserId = userSnapshot.getKey();
+                }
+            }
+
+            float THRESHOLD = 0.8f;
+            if (maxSimilarity > THRESHOLD && matchedUserId != null) {
+                Toast.makeText(this, "Face login successful!", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(LoginActivity.this,
+                        ModeSelectionActivity.class);
+                startActivity(i);
+                finish();
+            } else {
+                Toast.makeText(this, "No matching face found", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+    }
+    private float cosineSimilarity(float[] v1, float[] v2) {
+        float dot = 0f;
+        float norm1 = 0f;
+        float norm2 = 0f;
+        for (int i = 0; i < v1.length; i++) {
+            dot += v1[i] * v2[i];
+            norm1 += v1[i] * v1[i];
+            norm2 += v2[i] * v2[i];
+        }
+        return dot / ((float)(Math.sqrt(norm1) * Math.sqrt(norm2)));
+    }
+
 }
