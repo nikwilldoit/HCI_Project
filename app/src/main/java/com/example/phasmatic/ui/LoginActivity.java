@@ -13,6 +13,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -26,6 +27,13 @@ import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.*;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -34,8 +42,10 @@ public class LoginActivity extends AppCompatActivity {
     TextView txtDisplayInfoLog;
 
     DatabaseReference usersRef;
+    private ImageCapture imageCapture;
+    private Button captureButton;
 
-    // 🔹 Camera
+    //Camera
     private PreviewView viewFinder;
     private View cameraLayout, loginLayout;
 
@@ -56,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                     return insets;
                 });
 
-        // 🔹 UI
+        //UI
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
         edtPasswordLog = findViewById(R.id.edtPasswordLog);
         btnLoginLog = findViewById(R.id.btnLoginLog);
@@ -68,19 +78,19 @@ public class LoginActivity extends AppCompatActivity {
         cameraLayout = findViewById(R.id.cameraLayout);
         loginLayout = findViewById(R.id.loginLayout);
 
-        // 🔹 Firebase
+        //Firebase
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
 
-        // 🔹 Register
+        //Register
         btnRegisterLog.setOnClickListener(v -> {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
 
-        // 🔹 Normal Login
+        //Normal Login
         btnLoginLog.setOnClickListener(v -> {
             String email = edtEmailAddressLog.getText().toString().trim();
             String password = edtPasswordLog.getText().toString().trim();
@@ -93,12 +103,17 @@ public class LoginActivity extends AppCompatActivity {
             loginWithFirebase(email, password);
         });
 
-        // 🔥 Face Login
+        //Face Login
+
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
+        captureButton = findViewById(R.id.image_capture_button);
+
+        captureButton.setOnClickListener(v -> takePhoto());
     }
 
+
     // =========================================================
-    // 🔐 CAMERA PERMISSION
+    //CAMERA PERMISSION
     // =========================================================
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -130,7 +145,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     // =========================================================
-    // 📷 START CAMERA (CameraX)
+    //START CAMERA (CameraX)
     // =========================================================
     private void startCamera() {
 
@@ -148,6 +163,8 @@ public class LoginActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
 
+                imageCapture = new ImageCapture.Builder().build();
+
                 CameraSelector cameraSelector =
                         CameraSelector.DEFAULT_FRONT_CAMERA;
 
@@ -156,7 +173,8 @@ public class LoginActivity extends AppCompatActivity {
                 cameraProvider.bindToLifecycle(
                         this,
                         cameraSelector,
-                        preview
+                        preview,
+                        imageCapture
                 );
 
             } catch (Exception e) {
@@ -164,9 +182,51 @@ public class LoginActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
     }
+    private void takePhoto() {
+
+        if (imageCapture == null) {
+            txtDisplayInfoLog.setText("Camera not ready");
+            return;
+        }
+
+        File photoDir = new File(getExternalFilesDir(null), "photos");
+        if (!photoDir.exists()) photoDir.mkdirs();
+
+        File photoFile = new File(photoDir,
+                System.currentTimeMillis() + ".jpg");
+
+        ImageCapture.OutputFileOptions outputOptions =
+                new ImageCapture.OutputFileOptions.Builder(photoFile).build();
+
+        imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(this),
+                new ImageCapture.OnImageSavedCallback() {
+
+                    @Override
+                    public void onImageSaved(
+                            @NonNull ImageCapture.OutputFileResults outputFileResults) {
+
+                        txtDisplayInfoLog.setText("PHOTO SAVED ✅");
+
+                        // 🔥 IMPORTANT: δείξε το path
+                        System.out.println("PATH: " + photoFile.getAbsolutePath());
+                    }
+
+                    @Override
+                    public void onError(
+                            @NonNull ImageCaptureException exception) {
+
+                        txtDisplayInfoLog.setText("ERROR: " + exception.getMessage());
+                        exception.printStackTrace();
+                    }
+                }
+        );
+    }
+
 
     // =========================================================
-    // 🔐 FIREBASE LOGIN (ΟΠΩΣ ΕΙΧΕΣ)
+    //FIREBASE LOGIN
     // =========================================================
     private void loginWithFirebase(String email, String password) {
         usersRef.orderByChild("email")
