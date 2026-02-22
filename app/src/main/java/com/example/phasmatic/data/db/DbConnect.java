@@ -1,4 +1,4 @@
-package com.example.mega.data.db;
+package com.example.phasmatic.data.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.Nullable;
 
-import com.example.mega.data.model.User;
+import com.example.phasmatic.data.model.User;
 
 public class DbConnect extends SQLiteOpenHelper {
 
@@ -52,8 +52,8 @@ public class DbConnect extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        values.put(COL_FULLNAME, user.getFullname());
-        values.put(COL_EMAIL, user.getEmailAddress());
+        values.put(COL_FULLNAME, user.getFullName());
+        values.put(COL_EMAIL, user.getEmail());
         values.put(COL_PASSWORD, user.getPassword());
         values.put(COL_DATE_OF_BIRTH, user.getDateOfBirth());
         values.put(COL_PHONE_NUMBER, user.getPhoneNumber());
