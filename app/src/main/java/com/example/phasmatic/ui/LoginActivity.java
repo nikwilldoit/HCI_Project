@@ -347,8 +347,9 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         if (found) {
-                            Intent i = new Intent(LoginActivity.this,
-                                    ModeSelectionActivity.class);
+                            Toast.makeText(LoginActivity.this, "Logged in as: " + email, Toast.LENGTH_LONG).show();
+
+                            Intent i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
                             startActivity(i);
                             finish();
                         } else {
@@ -358,18 +359,16 @@ public class LoginActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(DatabaseError error) {
-                        txtDisplayInfoLog.setText(
-                                "Firebase error: " + error.getMessage());
+                        txtDisplayInfoLog.setText("Firebase error: " + error.getMessage());
                     }
                 });
     }
     private void loginWithFace(float[] inputEmbedding) {
-
         usersRef.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) return;
+            if (!task.isSuccessful() || task.getResult() == null) return;
 
             float maxSimilarity = -1f;
-            String matchedUserId = null;
+            String matchedEmail = null;
 
             for (DataSnapshot userSnapshot : task.getResult().getChildren()) {
                 List<Double> dbEmbeddingList = (List<Double>) userSnapshot.child("faceEmbedding").getValue();
@@ -381,25 +380,23 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 float similarity = cosineSimilarity(inputEmbedding, dbEmbedding);
-                Log.d("SIMILARITY", "User " + userSnapshot.getKey() + ": " + similarity);
 
                 if (similarity > maxSimilarity) {
                     maxSimilarity = similarity;
-                    matchedUserId = userSnapshot.getKey();
+                    matchedEmail = userSnapshot.child("email").getValue(String.class);
                 }
             }
 
             float THRESHOLD = 0.8f;
-            if (maxSimilarity > THRESHOLD && matchedUserId != null) {
-                Toast.makeText(this, "Face login successful!", Toast.LENGTH_SHORT).show();
-                Intent i = new Intent(LoginActivity.this,
-                        ModeSelectionActivity.class);
+            if (maxSimilarity > THRESHOLD && matchedEmail != null) {
+                Toast.makeText(this, "Logged in as: " + matchedEmail, Toast.LENGTH_LONG).show();
+
+                Intent i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
                 startActivity(i);
                 finish();
             } else {
                 Toast.makeText(this, "No matching face found", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
     private float cosineSimilarity(float[] v1, float[] v2) {
