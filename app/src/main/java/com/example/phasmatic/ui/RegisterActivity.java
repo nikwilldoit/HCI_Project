@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -32,6 +33,19 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+
+import org.tensorflow.lite.Interpreter;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +55,7 @@ public class RegisterActivity extends AppCompatActivity {
             edtDateOfBirthReg, edtPhoneNumberReg, edtBioReg;
     Button btnRegisterReg, btnLoginReg, btnCaptureFace, btnTakePhoto;
     TextView txtDisplayInfoReg;
-
+    private Interpreter tflite;
     DatabaseReference usersRef;
     private static final int CAMERA_PERMISSION_CODE = 100;
 
@@ -94,6 +108,18 @@ public class RegisterActivity extends AppCompatActivity {
         btnTakePhoto.setOnClickListener(v -> takePhoto());
 
         btnRegisterReg.setOnClickListener(v -> registerUser());
+
+        try {
+            AssetFileDescriptor fileDescriptor = getAssets().openFd("facenet.tflite");
+            FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+            FileChannel fileChannel = inputStream.getChannel();
+            long startOffset = fileDescriptor.getStartOffset();
+            long declaredLength = fileDescriptor.getDeclaredLength();
+            tflite = new Interpreter(fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void registerUser() {
@@ -223,17 +249,81 @@ public class RegisterActivity extends AppCompatActivity {
 
                     @Override
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
+
                         Toast.makeText(RegisterActivity.this,
                                 "Face Captured!", Toast.LENGTH_SHORT).show();
 
-                        // dummy embedding
-                        capturedEmbedding = new float[128];
-                        for (int i = 0; i < 128; i++) capturedEmbedding[i] = (float) Math.random();
+                        try {
 
-                        //return to register
+                            Uri imageUri = output.getSavedUri();
+
+                            if (imageUri == null) {
+                                Toast.makeText(RegisterActivity.this,
+                                        "Image URI is null", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+                            InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
+
+                            if (bitmap == null) {
+                                Toast.makeText(RegisterActivity.this,
+                                        "Bitmap decode failed", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
+                            Bitmap cropped = Bitmap.createBitmap(
+                                    bitmap,
+                                    (bitmap.getWidth() - size) / 2,
+                                    (bitmap.getHeight() - size) / 2,
+                                    size,
+                                    size
+                            );
+
+                            Bitmap resized = Bitmap.createScaledBitmap(cropped, 160, 160, true);
+
+                            capturedEmbedding = runModel(resized);
+
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(RegisterActivity.this,
+                                    "Processing error", Toast.LENGTH_SHORT).show();
+                        }
+
                         cameraLayout.setVisibility(View.GONE);
                         registerLayout.setVisibility(View.VISIBLE);
                     }
                 });
     }
+
+    private float[] runModel(Bitmap bitmap) {
+
+        ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
+        inputBuffer.order(ByteOrder.nativeOrder());
+
+        int[] pixels = new int[160 * 160];
+        bitmap.getPixels(pixels, 0, 160, 0, 0, 160, 160);
+
+        for (int pixel : pixels) {
+            float r = ((pixel >> 16) & 0xFF) / 255.0f;
+            float g = ((pixel >> 8) & 0xFF) / 255.0f;
+            float b = (pixel & 0xFF) / 255.0f;
+
+            inputBuffer.putFloat(r);
+            inputBuffer.putFloat(g);
+            inputBuffer.putFloat(b);
+        }
+
+        float[][] output = new float[1][128];
+
+        tflite.run(inputBuffer, output);
+
+        return output[0];
+    }
+
 }
