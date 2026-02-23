@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -22,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -35,19 +35,15 @@ import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.*;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureException;
 
 import org.tensorflow.lite.Interpreter;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
-
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -59,9 +55,8 @@ public class LoginActivity extends AppCompatActivity {
     private ImageCapture imageCapture;
     private Button captureButton;
 
-    //Camera
     private PreviewView viewFinder;
-    private View cameraLayout, loginLayout;
+    private android.view.View cameraLayout, loginLayout;
     private Interpreter tflite;
     private static final int CAMERA_PERMISSION_CODE = 100;
 
@@ -80,17 +75,18 @@ public class LoginActivity extends AppCompatActivity {
                     return insets;
                 });
 
-        //UI
+        //ui
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
-        edtPasswordLog = findViewById(R.id.edtPasswordLog);
-        btnLoginLog = findViewById(R.id.btnLoginLog);
-        btnRegisterLog = findViewById(R.id.btnRegisterLog);
-        txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
-        btnFaceLogin = findViewById(R.id.btnFaceLogin);
+        edtPasswordLog     = findViewById(R.id.edtPasswordLog);
+        btnLoginLog        = findViewById(R.id.btnLoginLog);
+        btnRegisterLog     = findViewById(R.id.btnRegisterLog);
+        txtDisplayInfoLog  = findViewById(R.id.txtDisplayInfoLog);
+        btnFaceLogin       = findViewById(R.id.btnFaceLogin);
 
-        viewFinder = findViewById(R.id.viewFinder);
+        viewFinder   = findViewById(R.id.viewFinder);
         cameraLayout = findViewById(R.id.cameraLayout);
-        loginLayout = findViewById(R.id.loginLayout);
+        loginLayout  = findViewById(R.id.loginLayout);
+        captureButton = findViewById(R.id.image_capture_button);
 
         //Firebase
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
@@ -98,13 +94,13 @@ public class LoginActivity extends AppCompatActivity {
         );
         usersRef = firebaseDb.getReference("users");
 
-        //Register
+        //register
         btnRegisterLog.setOnClickListener(v -> {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
 
-        //Normal Login
+        //login button
         btnLoginLog.setOnClickListener(v -> {
             String email = edtEmailAddressLog.getText().toString().trim();
             String password = edtPasswordLog.getText().toString().trim();
@@ -117,13 +113,11 @@ public class LoginActivity extends AppCompatActivity {
             loginWithFirebase(email, password);
         });
 
-        //Face Login
-
+        //face Login
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
-        captureButton = findViewById(R.id.image_capture_button);
-
         captureButton.setOnClickListener(v -> takePhoto());
 
+        //load TFLite model
         try {
             InputStream is = getAssets().open("facenet.tflite");
             byte[] model = new byte[is.available()];
@@ -137,13 +131,9 @@ public class LoginActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-
-    // =========================================================
     //CAMERA PERMISSION
-    // =========================================================
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -173,13 +163,11 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // =========================================================
-    //START CAMERA (CameraX)
-    // =========================================================
+    //START CAMERA
     private void startCamera() {
 
-        cameraLayout.setVisibility(View.VISIBLE);
-        loginLayout.setVisibility(View.GONE);
+        cameraLayout.setVisibility(android.view.View.VISIBLE);
+        loginLayout.setVisibility(android.view.View.GONE);
 
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(this);
@@ -211,6 +199,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
     }
+
     private void takePhoto() {
         if (imageCapture == null) {
             Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
@@ -282,7 +271,6 @@ public class LoginActivity extends AppCompatActivity {
 
                             float[] inputEmbedding = runModel(resized);
 
-                            // 🔹 Compare with Firebase embeddings
                             loginWithFace(inputEmbedding);
 
                         } catch (Exception e) {
@@ -291,13 +279,12 @@ public class LoginActivity extends AppCompatActivity {
                                     "Processing error", Toast.LENGTH_SHORT).show();
                         }
 
-                        cameraLayout.setVisibility(View.GONE);
-                        loginLayout.setVisibility(View.VISIBLE);
+                        cameraLayout.setVisibility(android.view.View.GONE);
+                        loginLayout.setVisibility(android.view.View.VISIBLE);
                     }
                 }
         );
     }
-
 
     private float[] runModel(Bitmap bitmap) {
 
@@ -323,9 +310,7 @@ public class LoginActivity extends AppCompatActivity {
         return output[0];
     }
 
-    // =========================================================
-    //FIREBASE LOGIN
-    // =========================================================
+    //EMAIL/PASSWORD LOGIN
     private void loginWithFirebase(String email, String password) {
         usersRef.orderByChild("email")
                 .equalTo(email)
@@ -363,6 +348,8 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    //FACE LOGIN
     private void loginWithFace(float[] inputEmbedding) {
         usersRef.get().addOnCompleteListener(task -> {
             if (!task.isSuccessful() || task.getResult() == null) return;
@@ -399,6 +386,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
     private float cosineSimilarity(float[] v1, float[] v2) {
         float dot = 0f;
         float norm1 = 0f;
@@ -410,5 +398,4 @@ public class LoginActivity extends AppCompatActivity {
         }
         return dot / ((float)(Math.sqrt(norm1) * Math.sqrt(norm2)));
     }
-
 }

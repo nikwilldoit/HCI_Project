@@ -55,9 +55,7 @@ public class DbConnect extends SQLiteOpenHelper {
         values.put(COL_FULLNAME, user.getFullName());
         values.put(COL_EMAIL, user.getEmail());
         values.put(COL_PASSWORD, user.getPassword());
-        values.put(COL_DATE_OF_BIRTH, user.getDateOfBirth());
         values.put(COL_PHONE_NUMBER, user.getPhoneNumber());
-        values.put(COL_BIO, user.getBio());
 
         db.insert(TABLE_USERS, null, values);
         db.close();
