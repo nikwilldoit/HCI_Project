@@ -7,7 +7,6 @@
     android:background="#FF1E3A5F"
     tools:context=".ui.RegisterActivity">
 
-
     <ScrollView
         android:id="@+id/registerLayout"
         android:layout_width="match_parent"
@@ -41,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="24dp" />
 
-
+            <!-- Full Name -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -63,7 +62,7 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-
+            <!-- Email -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,6 +84,7 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
+            <!-- Password -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -106,27 +106,7 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Date of birth"
-                android:textColor="#B3FFFFFF"
-                android:textSize="13sp" />
-            <EditText
-                android:id="@+id/edtDateOfBirthReg"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="4dp"
-                android:background="@android:color/white"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:hint="DD/MM/YYYY"
-                android:inputType="date"
-                android:textColor="#212121"
-                android:textColorHint="#9E9E9E" />
-
-            <Space android:layout_width="match_parent" android:layout_height="16dp" />
-
+            <!-- Phone -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -146,30 +126,9 @@
                 android:textColor="#212121"
                 android:textColorHint="#9E9E9E" />
 
-            <Space android:layout_width="match_parent" android:layout_height="16dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Short bio"
-                android:textColor="#B3FFFFFF"
-                android:textSize="13sp" />
-            <EditText
-                android:id="@+id/edtBioReg"
-                android:layout_width="match_parent"
-                android:layout_height="96dp"
-                android:layout_marginTop="4dp"
-                android:background="@android:color/white"
-                android:gravity="top"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:hint="Tell us a bit about your interests"
-                android:inputType="textMultiLine"
-                android:textColor="#212121"
-                android:textColorHint="#9E9E9E" />
-
             <Space android:layout_width="match_parent" android:layout_height="24dp" />
 
+            <!-- Capture Face Button -->
             <Button
                 android:id="@+id/btnCaptureFace"
                 android:layout_width="match_parent"
@@ -182,6 +141,7 @@
 
             <Space android:layout_width="match_parent" android:layout_height="16dp" />
 
+            <!-- Register Button -->
             <Button
                 android:id="@+id/btnRegisterReg"
                 android:layout_width="match_parent"
@@ -215,6 +175,7 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- CAMERA OVERLAY -->
     <FrameLayout
         android:id="@+id/cameraLayout"
         android:layout_width="match_parent"

@@ -5,11 +5,13 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -33,28 +35,22 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
-
 import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    EditText edtEmailAddressReg, edtPasswordReg, edtFullNameReg,
-            edtDateOfBirthReg, edtPhoneNumberReg, edtBioReg;
+    EditText edtEmailAddressReg, edtPasswordReg, edtFullNameReg, edtPhoneNumberReg;
     Button btnRegisterReg, btnLoginReg, btnCaptureFace, btnTakePhoto;
     TextView txtDisplayInfoReg;
+
     private Interpreter tflite;
     DatabaseReference usersRef;
     private static final int CAMERA_PERMISSION_CODE = 100;
@@ -62,7 +58,7 @@ public class RegisterActivity extends AppCompatActivity {
     private PreviewView viewFinder;
     private ImageCapture imageCapture;
     private FrameLayout cameraLayout;
-    private View registerLayout;
+    private android.view.View registerLayout;
 
     private float[] capturedEmbedding = null;
 
@@ -71,12 +67,11 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        //views apo XML
         edtEmailAddressReg = findViewById(R.id.edtEmailAddressReg);
         edtPasswordReg     = findViewById(R.id.edtPasswordReg);
         edtFullNameReg     = findViewById(R.id.edtFullName);
-        edtDateOfBirthReg  = findViewById(R.id.edtDateOfBirthReg);
         edtPhoneNumberReg  = findViewById(R.id.edtPhoneNumberReg);
-        edtBioReg          = findViewById(R.id.edtBioReg);
 
         btnLoginReg    = findViewById(R.id.btnLoginReg);
         btnRegisterReg = findViewById(R.id.btnRegisterReg);
@@ -88,27 +83,33 @@ public class RegisterActivity extends AppCompatActivity {
         registerLayout = findViewById(R.id.registerLayout);
         viewFinder     = findViewById(R.id.viewFinder);
 
+        //Firebase
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
 
+        //go to login
         btnLoginReg.setOnClickListener(v -> {
             Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(i);
             finish();
         });
 
+        //capture face
         btnCaptureFace.setOnClickListener(v -> {
-            cameraLayout.setVisibility(View.VISIBLE);
-            registerLayout.setVisibility(View.GONE);
+            cameraLayout.setVisibility(android.view.View.VISIBLE);
+            registerLayout.setVisibility(android.view.View.GONE);
             checkCameraPermission();
         });
 
+        //take photo
         btnTakePhoto.setOnClickListener(v -> takePhoto());
 
+        //register
         btnRegisterReg.setOnClickListener(v -> registerUser());
 
+        //load TFLite model
         try {
             AssetFileDescriptor fileDescriptor = getAssets().openFd("facenet.tflite");
             FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
@@ -119,16 +120,13 @@ public class RegisterActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private void registerUser() {
         String fullname = edtFullNameReg.getText().toString().trim();
         String email    = edtEmailAddressReg.getText().toString().trim();
         String password = edtPasswordReg.getText().toString().trim();
-        String dob      = edtDateOfBirthReg.getText().toString().trim();
         String phone    = edtPhoneNumberReg.getText().toString().trim();
-        String bio      = edtBioReg.getText().toString().trim();
 
         if (fullname.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Full name, email and password are required",
@@ -144,7 +142,19 @@ public class RegisterActivity extends AppCompatActivity {
 
         String userId = usersRef.push().getKey();
         if (userId != null) {
-            User user = new User(userId, fullname, email, password, dob, phone, bio);
+
+            List<Double> embeddingList = new ArrayList<>();
+            for (float f : capturedEmbedding) embeddingList.add((double) f);
+
+            User user = new User(
+                    userId,
+                    fullname,
+                    email,
+                    password,
+                    phone,
+                    embeddingList
+            );
+
             usersRef.child(userId).setValue(user)
                     .addOnSuccessListener(unused -> {
                         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
@@ -155,15 +165,10 @@ public class RegisterActivity extends AppCompatActivity {
                         Toast.makeText(this, "Firebase error: " + e.getMessage(),
                                 Toast.LENGTH_LONG).show();
                     });
-
-            List<Double> embeddingList = new ArrayList<>();
-            for (float f : capturedEmbedding) embeddingList.add((double) f);
-            usersRef.child(userId).child("faceEmbedding").setValue(embeddingList);
         }
     }
 
-    // ================= CAMERA =================
-
+    //CAMERA
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -188,8 +193,8 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
-        viewFinder.setVisibility(View.VISIBLE);
-        btnTakePhoto.setVisibility(View.VISIBLE);
+        viewFinder.setVisibility(android.view.View.VISIBLE);
+        btnTakePhoto.setVisibility(android.view.View.VISIBLE);
 
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(this);
@@ -254,7 +259,6 @@ public class RegisterActivity extends AppCompatActivity {
                                 "Face Captured!", Toast.LENGTH_SHORT).show();
 
                         try {
-
                             Uri imageUri = output.getSavedUri();
 
                             if (imageUri == null) {
@@ -288,15 +292,14 @@ public class RegisterActivity extends AppCompatActivity {
 
                             capturedEmbedding = runModel(resized);
 
-
                         } catch (Exception e) {
                             e.printStackTrace();
                             Toast.makeText(RegisterActivity.this,
                                     "Processing error", Toast.LENGTH_SHORT).show();
                         }
 
-                        cameraLayout.setVisibility(View.GONE);
-                        registerLayout.setVisibility(View.VISIBLE);
+                        cameraLayout.setVisibility(android.view.View.GONE);
+                        registerLayout.setVisibility(android.view.View.VISIBLE);
                     }
                 });
     }
@@ -325,5 +328,4 @@ public class RegisterActivity extends AppCompatActivity {
 
         return output[0];
     }
-
 }
