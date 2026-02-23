@@ -3,19 +3,20 @@ package com.example.phasmatic.data.model;
 import java.util.List;
 
 public class User_Face_Embedding {
+
     private String id;
     private String userId;
-    private List<Double> faceEmbedding;
-
     User user;
+    private List<List<Double>> faceEmbeddings;
 
-    public User_Face_Embedding(){
+    public User_Face_Embedding() {
+        // Required empty constructor for Firebase
     }
 
-    public User_Face_Embedding(String id, String userId, List<Double> faceEmbedding, User user) {
+    public User_Face_Embedding(String id, String userId, List<List<Double>> faceEmbeddings, User user) {
         this.id = id;
         this.userId = userId;
-        this.faceEmbedding = faceEmbedding;
+        this.faceEmbeddings = faceEmbeddings;
         this.user = user;
     }
 
@@ -23,23 +24,15 @@ public class User_Face_Embedding {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public List<List<Double>> getFaceEmbeddings() {
+        return faceEmbeddings;
     }
 
-    public List<Double> getFaceEmbedding() {
-        return faceEmbedding;
-    }
-
-    public void setFaceEmbedding(List<Double> faceEmbedding) {
-        this.faceEmbedding = faceEmbedding;
+    public void setFaceEmbeddings(List<List<Double>> faceEmbeddings) {
+        this.faceEmbeddings = faceEmbeddings;
     }
 }

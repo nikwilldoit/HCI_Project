@@ -67,14 +67,6 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.main), (v, insets) -> {
-                    Insets systemBars =
-                            insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(systemBars.left, systemBars.top,
-                            systemBars.right, systemBars.bottom);
-                    return insets;
-                });
 
         //ui
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
@@ -352,7 +344,6 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    //FACE LOGIN
     private void loginWithFace(float[] inputEmbedding) {
 
         if (inputEmbedding == null) {
@@ -367,45 +358,58 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            float maxSimilarity = -1f;
-            String matchedUserId = null;
+            float globalBestSimilarity = -1f;
+            String bestUserId = null;
 
             for (DataSnapshot snapshot : task.getResult().getChildren()) {
 
-                // SAFE read embedding
-                Object embeddingObj = snapshot.child("face_embedding").getValue();
-                if (!(embeddingObj instanceof List)) continue;
+                String userId = snapshot.child("userId").getValue(String.class);
 
-                List<?> rawList = (List<?>) embeddingObj;
+                Object embeddingsObj = snapshot.child("faceEmbeddings").getValue();
 
-                if (rawList.isEmpty()) continue;
+                if (!(embeddingsObj instanceof List)) continue;
 
-                float[] dbEmbedding = new float[rawList.size()];
+                List<?> embeddingsList = (List<?>) embeddingsObj;
 
-                try {
-                    for (int i = 0; i < rawList.size(); i++) {
-                        dbEmbedding[i] = ((Number) rawList.get(i)).floatValue();
+                float bestForThisUser = -1f;
+
+                //Loop σε ΟΛΑ τα embeddings του χρήστη
+                for (Object embObj : embeddingsList) {
+
+                    if (!(embObj instanceof List)) continue;
+
+                    List<?> rawVector = (List<?>) embObj;
+
+                    float[] dbEmbedding = new float[rawVector.size()];
+
+                    try {
+                        for (int i = 0; i < rawVector.size(); i++) {
+                            dbEmbedding[i] = ((Number) rawVector.get(i)).floatValue();
+                        }
+                    } catch (Exception e) {
+                        continue;
                     }
-                } catch (Exception e) {
-                    continue; // αν κάτι δεν είναι number, skip
+
+                    if (dbEmbedding.length != inputEmbedding.length) continue;
+
+                    float sim = cosineSimilarity(inputEmbedding, dbEmbedding);
+
+                    if (sim > bestForThisUser) {
+                        bestForThisUser = sim;
+                    }
                 }
 
-                // ensure same size
-                if (dbEmbedding.length != inputEmbedding.length) continue;
-
-                float similarity = cosineSimilarity(inputEmbedding, dbEmbedding);
-
-                if (similarity > maxSimilarity) {
-                    maxSimilarity = similarity;
-                    matchedUserId = snapshot.child("user_id").getValue(String.class);
+                if (bestForThisUser > globalBestSimilarity) {
+                    globalBestSimilarity = bestForThisUser;
+                    bestUserId = userId;
                 }
             }
 
-            float THRESHOLD = 0.8f;
+            float THRESHOLD = 0.7f;
 
-            if (maxSimilarity > THRESHOLD && matchedUserId != null) {
+            if (globalBestSimilarity > THRESHOLD && bestUserId != null) {
 
-                usersRef.child(matchedUserId)
+                usersRef.child(bestUserId)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
 
                             @Override
@@ -421,15 +425,8 @@ public class LoginActivity extends AppCompatActivity {
                                 String email =
                                         userSnapshot.child("email").getValue(String.class);
 
-                                if (email == null) {
-                                    Toast.makeText(LoginActivity.this,
-                                            "Email not found",
-                                            Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-
                                 Toast.makeText(LoginActivity.this,
-                                        "Logged in as: " + email,
+                                        "Face Login Success: " + email,
                                         Toast.LENGTH_LONG).show();
 
                                 Intent i = new Intent(LoginActivity.this,

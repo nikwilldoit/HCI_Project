@@ -58,8 +58,9 @@ dependencies {
     implementation "androidx.camera:camera-view:$camerax_version"
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
 
-    // ML Kit face detection (προαιρετικά, αν θες αυτόματο face detection)
+    // ML Kit face detection
     implementation 'com.google.mlkit:face-detection:16.1.7'
+    implementation 'com.google.mlkit:face-detection:16.1.5'
 
     // Kotlin & Lifecycle
     implementation("androidx.concurrent:concurrent-futures-ktx:1.1.0")
