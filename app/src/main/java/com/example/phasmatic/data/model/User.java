@@ -10,18 +10,17 @@ public class User {
     private String email;
     private String password;
     private String phoneNumber;
-    private List<Double> faceEmbedding;
+//    private List<Double> faceEmbedding;
 
     public User(){
     }
 
-    public User(String id, String fullName, String email, String password, String phoneNumber, List<Double> faceEmbedding) {
+    public User(String id, String fullName, String email, String password, String phoneNumber) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
-        this.faceEmbedding = faceEmbedding;
     }
 
     public String getId() {
@@ -64,11 +63,11 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
 
-    public List<Double> getFaceEmbedding() {
-        return faceEmbedding;
-    }
-
-    public void setFaceEmbedding(List<Double> faceEmbedding) {
-        this.faceEmbedding = faceEmbedding;
-    }
+//    public List<Double> getFaceEmbedding() {
+//        return faceEmbedding;
+//    }
+//
+//    public void setFaceEmbedding(List<Double> faceEmbedding) {
+//        this.faceEmbedding = faceEmbedding;
+//    }
 }

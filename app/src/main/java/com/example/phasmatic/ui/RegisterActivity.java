@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
+import com.example.phasmatic.data.model.User_Face_Embedding;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -53,6 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private Interpreter tflite;
     DatabaseReference usersRef;
+    DatabaseReference usersfaceembeddingRef;
     private static final int CAMERA_PERMISSION_CODE = 100;
 
     private PreviewView viewFinder;
@@ -88,6 +90,8 @@ public class RegisterActivity extends AppCompatActivity {
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
+
+        usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
         //go to login
         btnLoginReg.setOnClickListener(v -> {
@@ -141,6 +145,9 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         String userId = usersRef.push().getKey();
+
+        String user_face_embeddingId = usersfaceembeddingRef.push().getKey();
+
         if (userId != null) {
 
             List<Double> embeddingList = new ArrayList<>();
@@ -151,11 +158,29 @@ public class RegisterActivity extends AppCompatActivity {
                     fullname,
                     email,
                     password,
-                    phone,
-                    embeddingList
+                    phone
+            );
+
+
+            User_Face_Embedding userFaceEmbedding = new User_Face_Embedding(
+                user_face_embeddingId,
+                    userId ,
+                    embeddingList,
+                    user
             );
 
             usersRef.child(userId).setValue(user)
+                    .addOnSuccessListener(unused -> {
+                        Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Firebase error: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    });
+
+            usersfaceembeddingRef.child(user_face_embeddingId).setValue(userFaceEmbedding)
                     .addOnSuccessListener(unused -> {
                         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
