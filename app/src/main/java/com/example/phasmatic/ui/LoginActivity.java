@@ -52,6 +52,7 @@ public class LoginActivity extends AppCompatActivity {
     TextView txtDisplayInfoLog;
 
     DatabaseReference usersRef;
+    DatabaseReference usersfaceembeddingRef;
     private ImageCapture imageCapture;
     private Button captureButton;
 
@@ -66,14 +67,6 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-                findViewById(R.id.main), (v, insets) -> {
-                    Insets systemBars =
-                            insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(systemBars.left, systemBars.top,
-                            systemBars.right, systemBars.bottom);
-                    return insets;
-                });
 
         //ui
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
@@ -93,6 +86,8 @@ public class LoginActivity extends AppCompatActivity {
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
+
+        usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
         //register
         btnRegisterLog.setOnClickListener(v -> {
@@ -349,40 +344,109 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    //FACE LOGIN
     private void loginWithFace(float[] inputEmbedding) {
-        usersRef.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful() || task.getResult() == null) return;
 
-            float maxSimilarity = -1f;
-            String matchedEmail = null;
+        if (inputEmbedding == null) {
+            Toast.makeText(this, "Face model failed", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            for (DataSnapshot userSnapshot : task.getResult().getChildren()) {
-                List<Double> dbEmbeddingList = (List<Double>) userSnapshot.child("faceEmbedding").getValue();
-                if (dbEmbeddingList == null) continue;
+        usersfaceembeddingRef.get().addOnCompleteListener(task -> {
 
-                float[] dbEmbedding = new float[dbEmbeddingList.size()];
-                for (int i = 0; i < dbEmbeddingList.size(); i++) {
-                    dbEmbedding[i] = dbEmbeddingList.get(i).floatValue();
+            if (!task.isSuccessful() || task.getResult() == null) {
+                Toast.makeText(this, "Database error", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            float globalBestSimilarity = -1f;
+            String bestUserId = null;
+
+            for (DataSnapshot snapshot : task.getResult().getChildren()) {
+
+                String userId = snapshot.child("userId").getValue(String.class);
+
+                Object embeddingsObj = snapshot.child("faceEmbeddings").getValue();
+
+                if (!(embeddingsObj instanceof List)) continue;
+
+                List<?> embeddingsList = (List<?>) embeddingsObj;
+
+                float bestForThisUser = -1f;
+
+                //Loop σε ΟΛΑ τα embeddings του χρήστη
+                for (Object embObj : embeddingsList) {
+
+                    if (!(embObj instanceof List)) continue;
+
+                    List<?> rawVector = (List<?>) embObj;
+
+                    float[] dbEmbedding = new float[rawVector.size()];
+
+                    try {
+                        for (int i = 0; i < rawVector.size(); i++) {
+                            dbEmbedding[i] = ((Number) rawVector.get(i)).floatValue();
+                        }
+                    } catch (Exception e) {
+                        continue;
+                    }
+
+                    if (dbEmbedding.length != inputEmbedding.length) continue;
+
+                    float sim = cosineSimilarity(inputEmbedding, dbEmbedding);
+
+                    if (sim > bestForThisUser) {
+                        bestForThisUser = sim;
+                    }
                 }
 
-                float similarity = cosineSimilarity(inputEmbedding, dbEmbedding);
-
-                if (similarity > maxSimilarity) {
-                    maxSimilarity = similarity;
-                    matchedEmail = userSnapshot.child("email").getValue(String.class);
+                if (bestForThisUser > globalBestSimilarity) {
+                    globalBestSimilarity = bestForThisUser;
+                    bestUserId = userId;
                 }
             }
 
-            float THRESHOLD = 0.8f;
-            if (maxSimilarity > THRESHOLD && matchedEmail != null) {
-                Toast.makeText(this, "Logged in as: " + matchedEmail, Toast.LENGTH_LONG).show();
+            float THRESHOLD = 0.7f;
 
-                Intent i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
-                startActivity(i);
-                finish();
+            if (globalBestSimilarity > THRESHOLD && bestUserId != null) {
+
+                usersRef.child(bestUserId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+
+                            @Override
+                            public void onDataChange(DataSnapshot userSnapshot) {
+
+                                if (!userSnapshot.exists()) {
+                                    Toast.makeText(LoginActivity.this,
+                                            "User not found",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                String email =
+                                        userSnapshot.child("email").getValue(String.class);
+
+                                Toast.makeText(LoginActivity.this,
+                                        "Face Login Success: " + email,
+                                        Toast.LENGTH_LONG).show();
+
+                                Intent i = new Intent(LoginActivity.this,
+                                        ModeSelectionActivity.class);
+                                startActivity(i);
+                                finish();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError error) {
+                                Toast.makeText(LoginActivity.this,
+                                        "User fetch failed",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
             } else {
-                Toast.makeText(this, "No matching face found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,
+                        "No matching face found",
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,9 +33,15 @@ import androidx.core.content.ContextCompat;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
+import com.example.phasmatic.data.model.User_Face_Embedding;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
 
 import org.tensorflow.lite.Interpreter;
 
@@ -53,6 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private Interpreter tflite;
     DatabaseReference usersRef;
+    DatabaseReference usersfaceembeddingRef;
     private static final int CAMERA_PERMISSION_CODE = 100;
 
     private PreviewView viewFinder;
@@ -60,7 +69,6 @@ public class RegisterActivity extends AppCompatActivity {
     private FrameLayout cameraLayout;
     private android.view.View registerLayout;
 
-    private float[] capturedEmbedding = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +96,8 @@ public class RegisterActivity extends AppCompatActivity {
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
+
+        usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
         //go to login
         btnLoginReg.setOnClickListener(v -> {
@@ -134,36 +144,46 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (capturedEmbedding == null) {
+        if (finalEmbeddingsList.isEmpty()) {
             Toast.makeText(this, "Please capture your face first",
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         String userId = usersRef.push().getKey();
+
+        String user_face_embeddingId = usersfaceembeddingRef.push().getKey();
+
         if (userId != null) {
 
-            List<Double> embeddingList = new ArrayList<>();
-            for (float f : capturedEmbedding) embeddingList.add((double) f);
 
             User user = new User(
                     userId,
                     fullname,
                     email,
                     password,
-                    phone,
-                    embeddingList
+                    phone
+            );
+
+
+            User_Face_Embedding userFaceEmbedding = new User_Face_Embedding(
+                    user_face_embeddingId,
+                    userId,
+                    finalEmbeddingsList,
+                    user
             );
 
             usersRef.child(userId).setValue(user)
                     .addOnSuccessListener(unused -> {
-                        Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Firebase error: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+
+                        usersfaceembeddingRef.child(user_face_embeddingId)
+                                .setValue(userFaceEmbedding)
+                                .addOnSuccessListener(u -> {
+                                    Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                    finish();
+                                });
+
                     });
         }
     }
@@ -288,9 +308,8 @@ public class RegisterActivity extends AppCompatActivity {
                                     size
                             );
 
-                            Bitmap resized = Bitmap.createScaledBitmap(cropped, 160, 160, true);
 
-                            capturedEmbedding = runModel(resized);
+                            detectFaceAndProcess(cropped);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -328,4 +347,137 @@ public class RegisterActivity extends AppCompatActivity {
 
         return output[0];
     }
+
+    private List<List<Double>> finalEmbeddingsList = new ArrayList<>();
+
+    private void processWithAugmentation(Bitmap faceBitmap) {
+
+        List<float[]> embeddings = generateEmbeddings(faceBitmap);
+
+        finalEmbeddingsList.clear();
+
+        for (float[] emb : embeddings) {
+            List<Double> list = new ArrayList<>();
+            for (float f : emb) list.add((double) f);
+            finalEmbeddingsList.add(list);
+        }
+
+        Toast.makeText(this, "Face processed successfully!", Toast.LENGTH_SHORT).show();
+    }
+
+
+    private void detectFaceAndProcess(Bitmap bitmap) {
+
+        InputImage image = InputImage.fromBitmap(bitmap, 0);
+
+        FaceDetectorOptions options =
+                new FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .build();
+
+        FaceDetector detector = FaceDetection.getClient(options);
+
+        detector.process(image)
+                .addOnSuccessListener(faces -> {
+
+                    if (faces.isEmpty()) {
+                        Toast.makeText(this, "No face detected", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Face face = faces.get(0);
+                    Rect bounds = face.getBoundingBox();
+
+                    Bitmap faceBitmap = Bitmap.createBitmap(
+                            bitmap,
+                            Math.max(bounds.left, 0),
+                            Math.max(bounds.top, 0),
+                            Math.min(bounds.width(), bitmap.getWidth() - bounds.left),
+                            Math.min(bounds.height(), bitmap.getHeight() - bounds.top)
+                    );
+
+                    processWithAugmentation(faceBitmap);
+
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Face detection failed", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private List<Bitmap> augmentImage(Bitmap original) {
+
+        List<Bitmap> augmented = new ArrayList<>();
+
+        augmented.add(original);
+
+        try {
+            Matrix flipMatrix = new Matrix();
+            flipMatrix.preScale(-1.0f, 1.0f);
+            augmented.add(Bitmap.createBitmap(original, 0, 0,
+                    original.getWidth(), original.getHeight(), flipMatrix, true));
+        } catch (Exception ignored) {}
+
+        try {
+            augmented.add(changeBrightness(original, 1.1f));
+            augmented.add(changeBrightness(original, 0.9f));
+        } catch (Exception ignored) {}
+
+        try {
+            Matrix rotate = new Matrix();
+            rotate.postRotate(5);
+            augmented.add(Bitmap.createBitmap(original, 0, 0,
+                    original.getWidth(), original.getHeight(), rotate, true));
+        } catch (Exception ignored) {}
+
+        return augmented;
+    }
+    private Bitmap changeBrightness(Bitmap bmp, float factor) {
+        Bitmap newBitmap = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), bmp.getConfig());
+
+        for (int x = 0; x < bmp.getWidth(); x++) {
+            for (int y = 0; y < bmp.getHeight(); y++) {
+
+                int pixel = bmp.getPixel(x, y);
+
+                int r = Math.min(255, (int)(((pixel >> 16) & 0xFF) * factor));
+                int g = Math.min(255, (int)(((pixel >> 8) & 0xFF) * factor));
+                int b = Math.min(255, (int)((pixel & 0xFF) * factor));
+
+                newBitmap.setPixel(x, y, (0xFF << 24) | (r << 16) | (g << 8) | b);
+            }
+        }
+        return newBitmap;
+    }
+
+
+    private List<float[]> generateEmbeddings(Bitmap faceBitmap) {
+
+        List<float[]> embeddings = new ArrayList<>();
+
+        List<Bitmap> augmentedImages = augmentImage(faceBitmap);
+
+        for (Bitmap bmp : augmentedImages) {
+
+            Bitmap resized = Bitmap.createScaledBitmap(bmp, 160, 160, true);
+            float[] emb = runModel(resized);
+
+            embeddings.add(normalize(emb));
+        }
+
+        return embeddings;
+    }
+
+
+    private float[] normalize(float[] emb) {
+        float sum = 0f;
+        for (float v : emb) sum += v * v;
+        float norm = (float) Math.sqrt(sum);
+
+        for (int i = 0; i < emb.length; i++) {
+            emb[i] /= norm;
+        }
+        return emb;
+    }
+
+
 }
