@@ -405,7 +405,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
 
-            float THRESHOLD = 0.7f;
+            float THRESHOLD = 0.8f;
 
             if (globalBestSimilarity > THRESHOLD && bestUserId != null) {
 
