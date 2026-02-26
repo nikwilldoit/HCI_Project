@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.LoginActivity">
 
-    <!-- 🔹 LOGIN UI -->
     <LinearLayout
         android:id="@+id/loginLayout"
         android:layout_width="match_parent"
@@ -19,7 +18,7 @@
             android:id="@+id/txtTitleLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MEGA"
+            android:text="DECYRA"
             android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="@android:color/white" />
@@ -127,7 +126,6 @@
 
     </LinearLayout>
 
-    <!-- 🔹 CAMERA OVERLAY -->
     <FrameLayout
         android:id="@+id/cameraLayout"
         android:layout_width="match_parent"
@@ -139,7 +137,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- κουμπί capture/debug -->
         <Button
             android:id="@+id/image_capture_button"
             android:layout_width="wrap_content"
