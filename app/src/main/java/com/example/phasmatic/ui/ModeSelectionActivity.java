@@ -38,15 +38,14 @@ public class ModeSelectionActivity extends AppCompatActivity {
         btnMaster = findViewById(R.id.btnMasterMode);
 
         btnErasmus.setOnClickListener(v -> {
-            Intent i = new Intent(ModeSelectionActivity.this, ProfileQuestionsActivity.class);
-            i.putExtra("MODE", "ERASMUS");
+            Intent i = new Intent(ModeSelectionActivity.this, ErasmusChatActivity.class);
             startActivity(i);
         });
 
         btnMaster.setOnClickListener(v -> {
-            Intent i = new Intent(ModeSelectionActivity.this, ProfileQuestionsActivity.class);
-            i.putExtra("MODE", "MASTER");
+            Intent i = new Intent(ModeSelectionActivity.this, MasterChatActivity.class);
             startActivity(i);
         });
+
     }
 }
