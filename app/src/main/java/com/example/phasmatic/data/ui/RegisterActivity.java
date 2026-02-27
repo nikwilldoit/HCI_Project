@@ -1,4 +1,4 @@
-package com.example.phasmatic.ui;
+package com.example.phasmatic.data.ui;
 
 import android.Manifest;
 import android.content.ContentValues;

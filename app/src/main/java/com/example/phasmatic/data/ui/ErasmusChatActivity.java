@@ -1,4 +1,4 @@
-package com.example.phasmatic.ui;
+package com.example.phasmatic.data.ui;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -12,12 +12,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.ai.OpenAIChatClient;
 
 public class ErasmusChatActivity extends AppCompatActivity {
 
     TextView txtChatTitle, txtChatLog;
     EditText edtUserInput;
     Button btnSend;
+
+    OpenAIChatClient chatClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,12 +41,41 @@ public class ErasmusChatActivity extends AppCompatActivity {
 
         txtChatTitle.setText("DECYRA Erasmus Assistant");
 
+        chatClient = new OpenAIChatClient(this);
+
         btnSend.setOnClickListener(v -> {
             String userMsg = edtUserInput.getText().toString().trim();
             if (userMsg.isEmpty()) return;
 
-            txtChatLog.append("\nYou: " + userMsg);
+            appendToChat("You: " + userMsg);
             edtUserInput.setText("");
+            btnSend.setEnabled(false);
+
+            chatClient.sendMessage(userMsg, new OpenAIChatClient.ChatCallback() {
+                @Override
+                public void onSuccess(String reply) {
+                    runOnUiThread(() -> {
+                        appendToChat("Assistant: " + reply);
+                        btnSend.setEnabled(true);
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        appendToChat("Error: " + error);
+                        btnSend.setEnabled(true);
+                    });
+                }
+            });
         });
+    }
+
+    private void appendToChat(String text) {
+        if (txtChatLog.getText().length() == 0) {
+            txtChatLog.setText(text);
+        } else {
+            txtChatLog.append("\n\n" + text);
+        }
     }
 }
