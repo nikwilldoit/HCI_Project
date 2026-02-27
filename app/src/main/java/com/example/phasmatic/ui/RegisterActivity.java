@@ -54,6 +54,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -84,6 +85,8 @@ public class RegisterActivity extends AppCompatActivity {
 
     private PendingRecording pendingRecording;
     private androidx.camera.video.Recording activeRecording;
+
+    private static final long MAX_VIDEO_DURATION_MS = 5000L;
 
 
     @Override
@@ -384,6 +387,9 @@ public class RegisterActivity extends AppCompatActivity {
                         .setContentValues(contentValues)
                         .build();
 
+        //arxizei to session me ta embeddings
+        finalEmbeddingsList.clear();
+
         pendingRecording = videoCapture.getOutput()
                 .prepareRecording(this, mediaStoreOutputOptions);
 
@@ -401,13 +407,44 @@ public class RegisterActivity extends AppCompatActivity {
 
                         if (finalizeEvent.getError() == VideoRecordEvent.Finalize.ERROR_NONE) {
                             Toast.makeText(this, "Video saved!", Toast.LENGTH_SHORT).show();
+
+                            Uri videoUri = finalizeEvent.getOutputResults().getOutputUri();
+                            if (videoUri != null) {
+
+                                //ejagei 5 frames apo to video
+                                List<Bitmap> frames = null;
+                                try {
+                                    frames = extractFramesFromVideo(videoUri, 5);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+
+                                if (frames.isEmpty()) {
+                                    Toast.makeText(this, "No frames extracted", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    //gia kathe frame kanei face detection + embeddings
+                                    for (Bitmap frame : frames) {
+                                        detectFaceAndProcess(frame);
+                                    }
+                                }
+                            }
+
                         } else {
                             Toast.makeText(this, "Video error: " + finalizeEvent.getError(), Toast.LENGTH_SHORT).show();
                         }
+
+                        cameraLayout.setVisibility(android.view.View.GONE);
+                        registerLayout.setVisibility(android.view.View.VISIBLE);
                     }
                 }
         );
+        new android.os.Handler().postDelayed(() -> {
+            if (activeRecording != null) {
+                stopVideoRecording(); // θα πυροδοτήσει το Finalize event
+            }
+        }, MAX_VIDEO_DURATION_MS);
     }
+
 
     private void stopVideoRecording() {
         if (activeRecording != null) {
@@ -417,7 +454,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     //frames apo to video
-    private List<Bitmap> extractFramesFromVideo(Uri videoUri, int frameCount) {
+    private List<Bitmap> extractFramesFromVideo(Uri videoUri, int frameCount) throws IOException {
         List<Bitmap> frames = new ArrayList<>();
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
@@ -477,7 +514,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         List<float[]> embeddings = generateEmbeddings(faceBitmap);
 
-        finalEmbeddingsList.clear();
+        //finalEmbeddingsList.clear();
 
         for (float[] emb : embeddings) {
             List<Double> list = new ArrayList<>();
