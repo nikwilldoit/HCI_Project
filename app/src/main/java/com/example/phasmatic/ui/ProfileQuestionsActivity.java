@@ -1,4 +1,4 @@
-package com.example.phasmatic.data.ui;
+package com.example.phasmatic.ui;
 
 public class ProfileQuestionsActivity {
 }

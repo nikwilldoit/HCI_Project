@@ -1,4 +1,4 @@
-package com.example.phasmatic.data.ui;
+package com.example.phasmatic.ui;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -12,9 +12,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.phasmatic.R;
-import com.example.phasmatic.ai.OpenAIChatClient;
+import com.example.phasmatic.data.ai.OpenAIChatClient;
 
-public class MasterChatActivity extends AppCompatActivity {
+public class ErasmusChatActivity extends AppCompatActivity {
 
     TextView txtChatTitle, txtChatLog;
     EditText edtUserInput;
@@ -26,7 +26,7 @@ public class MasterChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_master_chat);
+        setContentView(R.layout.activity_erasmus_chat);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -39,7 +39,7 @@ public class MasterChatActivity extends AppCompatActivity {
         edtUserInput  = findViewById(R.id.edtUserInput);
         btnSend       = findViewById(R.id.btnSend);
 
-        txtChatTitle.setText("DECYRA Master Assistant");
+        txtChatTitle.setText("DECYRA Erasmus Assistant");
 
         chatClient = new OpenAIChatClient(this);
 
