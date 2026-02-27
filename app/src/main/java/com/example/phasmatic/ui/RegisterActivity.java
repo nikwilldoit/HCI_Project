@@ -60,6 +60,8 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import android.media.MediaMetadataRetriever;
+
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -413,6 +415,36 @@ public class RegisterActivity extends AppCompatActivity {
             activeRecording = null;
         }
     }
+
+    //frames apo to video
+    private List<Bitmap> extractFramesFromVideo(Uri videoUri, int frameCount) {
+        List<Bitmap> frames = new ArrayList<>();
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        try {
+            retriever.setDataSource(this, videoUri);
+
+            String durationStr = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_DURATION);
+            long durationMs = Long.parseLong(durationStr);
+
+            for (int i = 0; i < frameCount; i++) {
+                long timeUs = (durationMs * 1000L * (i + 1)) / (frameCount + 1);
+                Bitmap frame = retriever.getFrameAtTime(
+                        timeUs,
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                );
+                if (frame != null) {
+                    frames.add(frame);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            retriever.release();
+        }
+        return frames;
+    }
+
 
     private float[] runModel(Bitmap bitmap) {
 
