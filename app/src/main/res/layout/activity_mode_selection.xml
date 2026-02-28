@@ -1,59 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center"
     android:background="#FF1E3A5F"
     tools:context=".ui.ModeSelectionActivity">
 
-    <TextView
-        android:id="@+id/txtTitleMode"
-        android:layout_width="wrap_content"
+
+
+    <ImageView
+        android:id="@+id/imgProfile"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/profile_photo" />
+
+
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="What do you want to plan?"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_centerInParent="true">
 
-    <TextView
-        android:id="@+id/txtSubtitleMode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Choose the type of studies"
-        android:textSize="14sp"
-        android:textColor="#B3FFFFFF" />
+        <TextView
+            android:id="@+id/txtTitleMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="What do you want to plan?"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="32dp" />
+        <TextView
+            android:id="@+id/txtSubtitleMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Choose the type of studies"
+            android:textSize="14sp"
+            android:textColor="#B3FFFFFF" />
 
-    <Button
-        android:id="@+id/btnErasmusMode"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:backgroundTint="#FF4CAF50"
-        android:text="Erasmus mobility"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textColor="@android:color/white" />
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="32dp" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="16dp" />
+        <Button
+            android:id="@+id/btnErasmusMode"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="#FF4CAF50"
+            android:text="Erasmus mobility"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@android:color/white" />
 
-    <Button
-        android:id="@+id/btnMasterMode"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:backgroundTint="#FF03A9F4"
-        android:text="Master"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textColor="@android:color/white" />
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="16dp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnMasterMode"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="#FF03A9F4"
+            android:text="Master"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+</RelativeLayout>
