@@ -1,8 +1,11 @@
 package com.example.phasmatic.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -19,8 +22,11 @@ public class MasterChatActivity extends AppCompatActivity {
     TextView txtChatTitle, txtChatLog;
     EditText edtUserInput;
     Button btnSend;
-
+    ImageButton btnBack;
+    ImageView imgProfile;
+    private String userId, userFullName, userEmail, userPhone;
     OpenAIChatClient chatClient;
+    private ProfileMenuHelper profileMenuHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,14 +40,34 @@ public class MasterChatActivity extends AppCompatActivity {
             return insets;
         });
 
-        txtChatTitle  = findViewById(R.id.txtChatTitle);
-        txtChatLog    = findViewById(R.id.txtChatLog);
-        edtUserInput  = findViewById(R.id.edtUserInput);
-        btnSend       = findViewById(R.id.btnSend);
+        Intent intent = getIntent();
+        userId = intent.getStringExtra("userId");
+        userFullName = intent.getStringExtra("userFullName");
+        userEmail = intent.getStringExtra("userEmail");
+        userPhone = intent.getStringExtra("userPhone");
+
+        imgProfile = findViewById(R.id.imgProfile);
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
+
+        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+
+        txtChatTitle = findViewById(R.id.txtChatTitle);
+        txtChatLog = findViewById(R.id.txtChatLog);
+        edtUserInput = findViewById(R.id.edtUserInput);
+        btnSend = findViewById(R.id.btnSend);
 
         txtChatTitle.setText("DECYRA Master Assistant");
 
         chatClient = new OpenAIChatClient(this);
+
+        BackButtonHelper.attach(this, R.id.btnBack);
 
         btnSend.setOnClickListener(v -> {
             String userMsg = edtUserInput.getText().toString().trim();

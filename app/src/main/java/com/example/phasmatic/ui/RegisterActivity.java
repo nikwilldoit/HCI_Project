@@ -27,9 +27,17 @@ import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.video.MediaStoreOutputOptions;
+import androidx.camera.video.PendingRecording;
+import androidx.camera.video.Quality;
+import androidx.camera.video.QualitySelector;
+import androidx.camera.video.Recorder;
+import androidx.camera.video.VideoCapture;
+import androidx.camera.video.VideoRecordEvent;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Consumer;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
@@ -46,17 +54,20 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import android.media.MediaMetadataRetriever;
+
 
 public class RegisterActivity extends AppCompatActivity {
 
     EditText edtEmailAddressReg, edtPasswordReg, edtFullNameReg, edtPhoneNumberReg;
-    Button btnRegisterReg, btnLoginReg, btnCaptureFace, btnTakePhoto;
+    Button btnRegisterReg, btnLoginReg, btnCaptureFace, btnTakePhoto, btnTakeVideo;
     TextView txtDisplayInfoReg;
 
     private Interpreter tflite;
@@ -66,8 +77,16 @@ public class RegisterActivity extends AppCompatActivity {
 
     private PreviewView viewFinder;
     private ImageCapture imageCapture;
+    private VideoCapture<Recorder> videoCapture;
+
+    private Recorder recorder;
     private FrameLayout cameraLayout;
     private android.view.View registerLayout;
+
+    private PendingRecording pendingRecording;
+    private androidx.camera.video.Recording activeRecording;
+
+    private static final long MAX_VIDEO_DURATION_MS = 5000L;
 
 
     @Override
@@ -85,6 +104,7 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegisterReg = findViewById(R.id.btnRegisterReg);
         btnCaptureFace = findViewById(R.id.btnCaptureFace);
         btnTakePhoto   = findViewById(R.id.btnTakePhoto);
+        btnTakeVideo   = findViewById(R.id.btnTakeVideo);
         txtDisplayInfoReg = findViewById(R.id.txtDisplayInfoReg);
 
         cameraLayout   = findViewById(R.id.cameraLayout);
@@ -115,6 +135,9 @@ public class RegisterActivity extends AppCompatActivity {
 
         //take photo
         btnTakePhoto.setOnClickListener(v -> takePhoto());
+
+        //take video
+        btnTakeVideo.setOnClickListener(v -> onVideoButtonClicked());
 
         //register
         btnRegisterReg.setOnClickListener(v -> registerUser());
@@ -228,8 +251,11 @@ public class RegisterActivity extends AppCompatActivity {
                 imageCapture = new ImageCapture.Builder().build();
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
 
+                recorder = new Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HIGHEST)).build();
+                videoCapture = VideoCapture.withOutput(recorder);
+
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
+                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture, videoCapture);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -323,6 +349,140 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    private void onVideoButtonClicked() {
+        if (videoCapture == null) {
+            Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (activeRecording == null) {
+            //start recording
+            startVideoRecording();
+        } else {
+            //stop recording
+            stopVideoRecording();
+        }
+    }
+
+    private void startVideoRecording() {
+        String fullName = edtFullNameReg.getText().toString().trim();
+        if (fullName.isEmpty()) {
+            Toast.makeText(this, "Please enter your full name first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String safeFileName = fullName.replaceAll("[^a-zA-Z0-9]", "_");
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, safeFileName);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/FaceReg");
+        }
+
+        MediaStoreOutputOptions mediaStoreOutputOptions =
+                new MediaStoreOutputOptions.Builder(
+                        getContentResolver(),
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+                        .setContentValues(contentValues)
+                        .build();
+
+        //arxizei to session me ta embeddings
+        finalEmbeddingsList.clear();
+
+        pendingRecording = videoCapture.getOutput()
+                .prepareRecording(this, mediaStoreOutputOptions);
+
+        activeRecording = pendingRecording.start(
+                ContextCompat.getMainExecutor(this),
+                videoRecordEvent -> {
+                    if (videoRecordEvent instanceof VideoRecordEvent.Start) {
+                        btnTakeVideo.setText("Stop Video");
+                    } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
+                        btnTakeVideo.setText("Start Video");
+                        activeRecording = null;
+
+                        VideoRecordEvent.Finalize finalizeEvent =
+                                (VideoRecordEvent.Finalize) videoRecordEvent;
+
+                        if (finalizeEvent.getError() == VideoRecordEvent.Finalize.ERROR_NONE) {
+                            Toast.makeText(this, "Video saved!", Toast.LENGTH_SHORT).show();
+
+                            Uri videoUri = finalizeEvent.getOutputResults().getOutputUri();
+                            if (videoUri != null) {
+
+                                //ejagei 5 frames apo to video
+                                List<Bitmap> frames = null;
+                                try {
+                                    frames = extractFramesFromVideo(videoUri, 5);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+
+                                if (frames.isEmpty()) {
+                                    Toast.makeText(this, "No frames extracted", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    //gia kathe frame kanei face detection + embeddings
+                                    for (Bitmap frame : frames) {
+                                        detectFaceAndProcess(frame);
+                                    }
+                                }
+                            }
+
+                        } else {
+                            Toast.makeText(this, "Video error: " + finalizeEvent.getError(), Toast.LENGTH_SHORT).show();
+                        }
+
+                        cameraLayout.setVisibility(android.view.View.GONE);
+                        registerLayout.setVisibility(android.view.View.VISIBLE);
+                    }
+                }
+        );
+        new android.os.Handler().postDelayed(() -> {
+            if (activeRecording != null) {
+                stopVideoRecording();
+            }
+        }, MAX_VIDEO_DURATION_MS);
+    }
+
+
+    private void stopVideoRecording() {
+        if (activeRecording != null) {
+            activeRecording.stop();
+            activeRecording = null;
+        }
+    }
+
+    //frames apo to video
+    private List<Bitmap> extractFramesFromVideo(Uri videoUri, int frameCount) throws IOException {
+        List<Bitmap> frames = new ArrayList<>();
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        try {
+            retriever.setDataSource(this, videoUri);
+
+            String durationStr = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_DURATION);
+            long durationMs = Long.parseLong(durationStr);
+
+            for (int i = 0; i < frameCount; i++) {
+                long timeUs = (durationMs * 1000L * (i + 1)) / (frameCount + 1);
+                Bitmap frame = retriever.getFrameAtTime(
+                        timeUs,
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                );
+                if (frame != null) {
+                    frames.add(frame);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            retriever.release();
+        }
+        return frames;
+    }
+
+
     private float[] runModel(Bitmap bitmap) {
 
         ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
@@ -354,7 +514,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         List<float[]> embeddings = generateEmbeddings(faceBitmap);
 
-        finalEmbeddingsList.clear();
+        //finalEmbeddingsList.clear();
 
         for (float[] emb : embeddings) {
             List<Double> list = new ArrayList<>();

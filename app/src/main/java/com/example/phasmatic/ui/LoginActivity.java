@@ -27,9 +27,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.User;
@@ -67,8 +64,7 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-
-        //ui
+        //UI
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
         edtPasswordLog     = findViewById(R.id.edtPasswordLog);
         btnLoginLog        = findViewById(R.id.btnLoginLog);
@@ -86,16 +82,15 @@ public class LoginActivity extends AppCompatActivity {
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
-
         usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
-        //register
+        //Register
         btnRegisterLog.setOnClickListener(v -> {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
 
-        //login button
+        //Email/password login
         btnLoginLog.setOnClickListener(v -> {
             String email = edtEmailAddressLog.getText().toString().trim();
             String password = edtPasswordLog.getText().toString().trim();
@@ -108,23 +103,29 @@ public class LoginActivity extends AppCompatActivity {
             loginWithFirebase(email, password);
         });
 
-        //face Login
+        //Face Login
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
 
-        //load TFLite model
+        //Load TFLite model
         try {
             InputStream is = getAssets().open("facenet.tflite");
             byte[] model = new byte[is.available()];
-            is.read(model);
+            int read = is.read(model);
             is.close();
+
+            if (read <= 0) throw new RuntimeException("Model read failed");
 
             ByteBuffer buffer = ByteBuffer.allocateDirect(model.length)
                     .order(ByteOrder.nativeOrder());
             buffer.put(model);
+            buffer.rewind();
+
             tflite = new Interpreter(buffer);
         } catch (Exception e) {
             e.printStackTrace();
+            tflite = null;
+            Toast.makeText(this, "Failed to load face model", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -196,6 +197,11 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void takePhoto() {
+        if (tflite == null) {
+            Toast.makeText(this, "Face model not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (imageCapture == null) {
             Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
             return;
@@ -246,6 +252,7 @@ public class LoginActivity extends AppCompatActivity {
 
                             InputStream inputStream = getContentResolver().openInputStream(imageUri);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
+                            if (inputStream != null) inputStream.close();
 
                             if (bitmap == null) {
                                 Toast.makeText(LoginActivity.this,
@@ -264,7 +271,7 @@ public class LoginActivity extends AppCompatActivity {
 
                             Bitmap resized = Bitmap.createScaledBitmap(cropped, 160, 160, true);
 
-                            float[] inputEmbedding = runModel(resized);
+                            float[] inputEmbedding = normalize(runModel(resized));
 
                             loginWithFace(inputEmbedding);
 
@@ -305,7 +312,7 @@ public class LoginActivity extends AppCompatActivity {
         return output[0];
     }
 
-    //EMAIL/PASSWORD LOGIN
+    // EMAIL/PASSWORD LOGIN
     private void loginWithFirebase(String email, String password) {
         usersRef.orderByChild("email")
                 .equalTo(email)
@@ -317,21 +324,29 @@ public class LoginActivity extends AppCompatActivity {
                             return;
                         }
 
-                        boolean found = false;
+                        User matchedUser = null;
+
                         for (DataSnapshot child : snapshot.getChildren()) {
                             User user = child.getValue(User.class);
                             if (user != null && password.equals(user.getPassword())) {
-                                found = true;
+                                matchedUser = user;
                                 break;
                             }
                         }
 
-                        if (found) {
-                            Toast.makeText(LoginActivity.this, "Logged in as: " + email, Toast.LENGTH_LONG).show();
+                        if (matchedUser != null) {
+                            Toast.makeText(LoginActivity.this,
+                                    "Logged in as: " + matchedUser.getEmail(),
+                                    Toast.LENGTH_LONG).show();
 
                             Intent i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
+                            i.putExtra("userId", matchedUser.getId());
+                            i.putExtra("userFullName", matchedUser.getFullName());
+                            i.putExtra("userEmail", matchedUser.getEmail());
+                            i.putExtra("userPhone", matchedUser.getPhoneNumber());
                             startActivity(i);
                             finish();
+
                         } else {
                             txtDisplayInfoLog.setText("Incorrect email or password");
                         }
@@ -373,7 +388,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 float bestForThisUser = -1f;
 
-                //Loop σε ΟΛΑ τα embeddings του χρήστη
+                // Loop σε ΟΛΑ τα embeddings του χρήστη
                 for (Object embObj : embeddingsList) {
 
                     if (!(embObj instanceof List)) continue;
@@ -409,6 +424,8 @@ public class LoginActivity extends AppCompatActivity {
 
             if (globalBestSimilarity > THRESHOLD && bestUserId != null) {
 
+                String finalBestUserId = bestUserId;
+
                 usersRef.child(bestUserId)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
 
@@ -422,15 +439,24 @@ public class LoginActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                String email =
-                                        userSnapshot.child("email").getValue(String.class);
+                                User user = userSnapshot.getValue(User.class);
+                                if (user == null) {
+                                    Toast.makeText(LoginActivity.this,
+                                            "User data error",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
 
                                 Toast.makeText(LoginActivity.this,
-                                        "Face Login Success: " + email,
+                                        "Face Login Success: " + user.getEmail(),
                                         Toast.LENGTH_LONG).show();
 
                                 Intent i = new Intent(LoginActivity.this,
                                         ModeSelectionActivity.class);
+                                i.putExtra("userId", finalBestUserId);
+                                i.putExtra("userFullName", user.getFullName());
+                                i.putExtra("userEmail", user.getEmail());
+                                i.putExtra("userPhone", user.getPhoneNumber());
                                 startActivity(i);
                                 finish();
                             }
@@ -460,6 +486,17 @@ public class LoginActivity extends AppCompatActivity {
             norm1 += v1[i] * v1[i];
             norm2 += v2[i] * v2[i];
         }
-        return dot / ((float)(Math.sqrt(norm1) * Math.sqrt(norm2)));
+        float denom = (float) (Math.sqrt(norm1) * Math.sqrt(norm2));
+        if (denom == 0f) return -1f;
+        return dot / denom;
+    }
+
+    private float[] normalize(float[] emb) {
+        float sum = 0f;
+        for (float v : emb) sum += v * v;
+        float norm = (float) Math.sqrt(sum);
+        if (norm == 0f) return emb;
+        for (int i = 0; i < emb.length; i++) emb[i] /= norm;
+        return emb;
     }
 }
