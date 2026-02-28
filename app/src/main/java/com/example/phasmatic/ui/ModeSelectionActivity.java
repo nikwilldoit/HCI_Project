@@ -61,7 +61,14 @@ public class ModeSelectionActivity extends AppCompatActivity {
         imgProfile = findViewById(R.id.imgProfile);
 
 
-        BackButtonHelper.attachToGoLogin(this, R.id.btnBack);
+        BackButtonHelper.attachToGoUserInfo(
+                this,
+                R.id.btnBack,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
 
 
         btnErasmus.setOnClickListener(v -> {
