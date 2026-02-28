@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // UI
+        //UI
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
         edtPasswordLog     = findViewById(R.id.edtPasswordLog);
         btnLoginLog        = findViewById(R.id.btnLoginLog);
@@ -77,20 +77,20 @@ public class LoginActivity extends AppCompatActivity {
         loginLayout  = findViewById(R.id.loginLayout);
         captureButton = findViewById(R.id.image_capture_button);
 
-        // Firebase
+        //Firebase
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
         usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
-        // Register
+        //Register
         btnRegisterLog.setOnClickListener(v -> {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
 
-        // Email/password login
+        //Email/password login
         btnLoginLog.setOnClickListener(v -> {
             String email = edtEmailAddressLog.getText().toString().trim();
             String password = edtPasswordLog.getText().toString().trim();
@@ -103,11 +103,11 @@ public class LoginActivity extends AppCompatActivity {
             loginWithFirebase(email, password);
         });
 
-        // Face Login
+        //Face Login
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
 
-        // Load TFLite model
+        //Load TFLite model
         try {
             InputStream is = getAssets().open("facenet.tflite");
             byte[] model = new byte[is.available()];
@@ -129,7 +129,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // CAMERA PERMISSION
+    //CAMERA PERMISSION
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -159,7 +159,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // START CAMERA
+    //START CAMERA
     private void startCamera() {
 
         cameraLayout.setVisibility(android.view.View.VISIBLE);

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,12 +24,11 @@ import com.google.firebase.database.FirebaseDatabase;
 public class ModeSelectionActivity extends AppCompatActivity {
 
     Button btnErasmus, btnMaster;
+    ImageButton btnBack;
     TextView txtTitle, txtSubtitle;
     ImageView imgProfile;
-
     private String userId, userFullName, userEmail, userPhone;
-
-    private DatabaseReference usersRef;
+    private ProfileMenuHelper profileMenuHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,103 +42,45 @@ public class ModeSelectionActivity extends AppCompatActivity {
         userEmail = intent.getStringExtra("userEmail");
         userPhone = intent.getStringExtra("userPhone");
 
+        imgProfile = findViewById(R.id.imgProfile);
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
+
+        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+
         txtTitle = findViewById(R.id.txtTitleMode);
         txtSubtitle = findViewById(R.id.txtSubtitleMode);
         btnErasmus = findViewById(R.id.btnErasmusMode);
         btnMaster = findViewById(R.id.btnMasterMode);
         imgProfile = findViewById(R.id.imgProfile);
 
-        imgProfile.setOnClickListener(v -> showProfileMenu(v));
+
+        BackButtonHelper.attach(this, R.id.btnBack);
+
 
         btnErasmus.setOnClickListener(v -> {
             Intent i = new Intent(ModeSelectionActivity.this, ErasmusChatActivity.class);
+            i.putExtra("userId", userId);
+            i.putExtra("userFullName", userFullName);
+            i.putExtra("userEmail", userEmail);
+            i.putExtra("userPhone", userPhone);
             startActivity(i);
         });
 
         btnMaster.setOnClickListener(v -> {
             Intent i = new Intent(ModeSelectionActivity.this, MasterChatActivity.class);
+            i.putExtra("userId", userId);
+            i.putExtra("userFullName", userFullName);
+            i.putExtra("userEmail", userEmail);
+            i.putExtra("userPhone", userPhone);
             startActivity(i);
         });
-
-        FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
-                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
-        );
-        usersRef = firebaseDb.getReference("users");
-
     }
-
-    private void showProfileMenu(android.view.View anchor) {
-        PopupMenu popup = new PopupMenu(this, anchor);
-        popup.getMenuInflater().inflate(R.menu.profile_menu, popup.getMenu());
-
-        popup.setOnMenuItemClickListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.menu_account) {
-                showUserInfoDialog();
-                return true;
-            } else if (id == R.id.menu_logout) {
-                logout();
-                return true;
-            }
-            return false;
-        });
-
-        popup.show();
-    }
-
-
-    private void logout() {
-        Intent i = new Intent(ModeSelectionActivity.this, LoginActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(i);
-        finish();
-    }
-
-
-    private void showUserInfoDialog() {
-        android.view.LayoutInflater inflater = getLayoutInflater();
-        android.view.View dialogView = inflater.inflate(R.layout.dialog_account, null);
-
-        EditText edtName = dialogView.findViewById(R.id.edtAccountName);
-        EditText edtEmail = dialogView.findViewById(R.id.edtAccountEmail);
-        EditText edtPhone = dialogView.findViewById(R.id.edtAccountPhone);
-
-        edtName.setText(userFullName != null ? userFullName : "");
-        edtEmail.setText(userEmail != null ? userEmail : "");
-        edtPhone.setText(userPhone != null ? userPhone : "");
-
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setView(dialogView)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String newName = edtName.getText().toString().trim();
-                    String newEmail = edtEmail.getText().toString().trim();
-                    String newPhone = edtPhone.getText().toString().trim();
-
-                    //local update
-                    userFullName = newName;
-                    userEmail = newEmail;
-                    userPhone = newPhone;
-
-                    if (userId == null || userId.isEmpty()) {
-                        Toast.makeText(this, "User id missing", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    //update sto firebase
-                    usersRef.child(userId).child("fullName").setValue(newName);
-                    usersRef.child(userId).child("email").setValue(newEmail);
-                    usersRef.child(userId).child("phoneNumber").setValue(newPhone)
-                            .addOnSuccessListener(unused ->
-                                    Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show()
-                            )
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                            );
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-
 }
 

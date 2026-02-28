@@ -440,7 +440,7 @@ public class RegisterActivity extends AppCompatActivity {
         );
         new android.os.Handler().postDelayed(() -> {
             if (activeRecording != null) {
-                stopVideoRecording(); // θα πυροδοτήσει το Finalize event
+                stopVideoRecording();
             }
         }, MAX_VIDEO_DURATION_MS);
     }
