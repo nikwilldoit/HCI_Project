@@ -110,6 +110,51 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose your advisor"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="12dp"/>
+
+        <LinearLayout
+            android:id="@+id/llAdvisorChoices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:id="@+id/imgAdvisorMale"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/male"
+                android:contentDescription="Male advisor"
+                android:padding="8dp"
+                android:background="@drawable/advisor_unselected_bg"/>
+
+            <ImageView
+                android:id="@+id/imgAdvisorFemale"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/female"
+                android:contentDescription="Female advisor"
+                android:padding="8dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/advisor_unselected_bg"/>
+
+            <ImageView
+                android:id="@+id/imgAdvisorRobot"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/robot"
+                android:contentDescription="Robot advisor"
+                android:padding="8dp"
+                android:background="@drawable/advisor_unselected_bg"/>
+        </LinearLayout>
+
         <Button
             android:id="@+id/btnSaveUserInfo"
             android:layout_width="match_parent"

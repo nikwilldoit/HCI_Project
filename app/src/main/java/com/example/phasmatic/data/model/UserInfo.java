@@ -9,11 +9,13 @@ public class UserInfo {
     private String field;
     private Double budgetPerYear;
     private Integer yearOfStudies;
+    private String advisorType;
+    private String advisorImage;
 
     public UserInfo(){
     }
 
-    public UserInfo(String userId, String university, String academicLevel, String languages, Double gpa, String field, Double budgetPerYear, Integer yearOfStudies) {
+    public UserInfo(String userId, String university, String academicLevel, String languages, Double gpa, String field, Double budgetPerYear, Integer yearOfStudies, String advisorType, String advisorImage) {
         this.userId = userId;
         this.university = university;
         this.academicLevel = academicLevel;
@@ -22,6 +24,8 @@ public class UserInfo {
         this.field = field;
         this.budgetPerYear = budgetPerYear;
         this.yearOfStudies = yearOfStudies;
+        this.advisorType = advisorType;
+        this.advisorImage = advisorImage;
     }
 
     public String getUserId() {
@@ -74,6 +78,22 @@ public class UserInfo {
 
     public Double getBudgetPerYear() {
         return budgetPerYear;
+    }
+
+    public String getAdvisorType() {
+        return advisorType;
+    }
+
+    public void setAdvisorType(String advisorType) {
+        this.advisorType = advisorType;
+    }
+
+    public String getAdvisorImage() {
+        return advisorImage;
+    }
+
+    public void setAdvisorImage(String advisorImage) {
+        this.advisorImage = advisorImage;
     }
 
     public void setBudgetPerYear(Double budgetPerYear) {

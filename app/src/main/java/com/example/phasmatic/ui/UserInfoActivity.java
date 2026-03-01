@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -34,8 +36,9 @@ public class UserInfoActivity extends AppCompatActivity {
 
     private ArrayAdapter<String> universityAdapter;
     private final List<String> universityList = new ArrayList<>();
-
     private boolean hasUserInfo = false;
+    private ImageView imgAdvisorMale, imgAdvisorFemale, imgAdvisorRobot;
+    private String advisorType; //male,female,robot
 
 
     @Override
@@ -65,6 +68,9 @@ public class UserInfoActivity extends AppCompatActivity {
         edtField = findViewById(R.id.edtField);
         edtBudget = findViewById(R.id.edtBudget);
         btnSave = findViewById(R.id.btnSaveUserInfo);
+        imgAdvisorMale = findViewById(R.id.imgAdvisorMale);
+        imgAdvisorFemale = findViewById(R.id.imgAdvisorFemale);
+        imgAdvisorRobot = findViewById(R.id.imgAdvisorRobot);
 
         FirebaseDatabase db = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
@@ -75,8 +81,27 @@ public class UserInfoActivity extends AppCompatActivity {
         setupYearSpinner();
         loadUniversitiesIntoSpinner();
 
+        imgAdvisorMale.setOnClickListener(v -> selectAdvisor("male"));
+        imgAdvisorFemale.setOnClickListener(v -> selectAdvisor("female"));
+        imgAdvisorRobot.setOnClickListener(v -> selectAdvisor("robot"));
+
         btnSave.setOnClickListener(v -> saveUserInfo());
     }
+
+    private void selectAdvisor(String type) {
+        advisorType = type;
+
+        imgAdvisorMale.setBackgroundResource(
+                "male".equals(type) ? R.drawable.advisor_selected_bg : R.drawable.advisor_unselected_bg
+        );
+        imgAdvisorFemale.setBackgroundResource(
+                "female".equals(type) ? R.drawable.advisor_selected_bg : R.drawable.advisor_unselected_bg
+        );
+        imgAdvisorRobot.setBackgroundResource(
+                "robot".equals(type) ? R.drawable.advisor_selected_bg : R.drawable.advisor_unselected_bg
+        );
+    }
+
 
     @Override
     protected void onStart() {
@@ -179,6 +204,10 @@ public class UserInfoActivity extends AppCompatActivity {
                                 spnYear.setSelection(yearIndex);
                             }
                         }
+                        if (info.getAdvisorType() != null) {
+                            selectAdvisor(info.getAdvisorType());
+                        }
+
                     }
 
                     @Override
@@ -221,6 +250,25 @@ public class UserInfoActivity extends AppCompatActivity {
             return;
         }
 
+        if (advisorType == null) {
+            Toast.makeText(this, "Please choose an advisor", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String advisorImage;
+        switch (advisorType) {
+            case "male":
+                advisorImage = "male.png";
+                break;
+            case "female":
+                advisorImage = "female.png";
+                break;
+            case "robot":
+            default:
+                advisorImage = "robot.png";
+                break;
+        }
+
         UserInfo info = new UserInfo(
                 userId,
                 university,
@@ -229,8 +277,11 @@ public class UserInfoActivity extends AppCompatActivity {
                 gpa,
                 field,
                 budget,
-                year
+                year,
+                advisorType,
+                advisorImage
         );
+
 
         userInfoRef.child(userId)
                 .setValue(info)
