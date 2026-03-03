@@ -30,6 +30,8 @@
             android:name=".ui.RegisterActivity"
             android:exported="false" />
 
+        <activity android:name=".ui.UserInfoActivity" />
+
         <activity
             android:name=".ui.ModeSelectionActivity"
             android:exported="false" />
@@ -37,6 +39,8 @@
         <activity android:name=".ui.ErasmusChatActivity" />
 
         <activity android:name=".ui.MasterChatActivity" />
+
+        <activity android:name=".ui.QuestionnaireActivity" />
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

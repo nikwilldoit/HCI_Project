@@ -31,6 +31,8 @@ CREATE TABLE `user_info` (
   `field` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `budget_per_year` decimal(10,2) DEFAULT NULL,
   `year_of_studies` int DEFAULT NULL,
+  `advisor_type` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `advisor_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   CONSTRAINT `fk_user_info_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -42,7 +44,7 @@ CREATE TABLE `user_info` (
 
 LOCK TABLES `user_info` WRITE;
 /*!40000 ALTER TABLE `user_info` DISABLE KEYS */;
-INSERT INTO `user_info` VALUES (1,'National and Kapodistrian University of Athens','Bachelor','English,Greek',8.50,'Computer Science',5000.00,3),(2,'Aristotle University of Thessaloniki','Master','English',7.80,'Engineering',6000.00,1);
+INSERT INTO `user_info` VALUES (1,'AUEB','Bachelor','Greek, English',8.50,'Computer Science',5000.00,3,'male','male.png'),(2,'UoA','Master','Greek, English',9.20,'Informatics',5000.00,4,'robot','robot.png');
 /*!40000 ALTER TABLE `user_info` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -55,4 +57,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-23 16:46:07
+-- Dump completed on 2026-03-01 17:39:35

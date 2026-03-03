@@ -50,6 +50,8 @@ public class LoginActivity extends AppCompatActivity {
 
     DatabaseReference usersRef;
     DatabaseReference usersfaceembeddingRef;
+    DatabaseReference userInfoRef;
+
     private ImageCapture imageCapture;
     private Button captureButton;
 
@@ -83,6 +85,7 @@ public class LoginActivity extends AppCompatActivity {
         );
         usersRef = firebaseDb.getReference("users");
         usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
+        userInfoRef = firebaseDb.getReference("user_info");
 
         //Register
         btnRegisterLog.setOnClickListener(v -> {
@@ -312,7 +315,7 @@ public class LoginActivity extends AppCompatActivity {
         return output[0];
     }
 
-    // EMAIL/PASSWORD LOGIN
+    //EMAIL/PASSWORD LOGIN
     private void loginWithFirebase(String email, String password) {
         usersRef.orderByChild("email")
                 .equalTo(email)
@@ -339,13 +342,35 @@ public class LoginActivity extends AppCompatActivity {
                                     "Logged in as: " + matchedUser.getEmail(),
                                     Toast.LENGTH_LONG).show();
 
-                            Intent i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
-                            i.putExtra("userId", matchedUser.getId());
-                            i.putExtra("userFullName", matchedUser.getFullName());
-                            i.putExtra("userEmail", matchedUser.getEmail());
-                            i.putExtra("userPhone", matchedUser.getPhoneNumber());
-                            startActivity(i);
-                            finish();
+                            String uid = matchedUser.getId();
+
+                            User finalMatchedUser = matchedUser;
+                            userInfoRef.child(uid)
+                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot infoSnap) {
+
+                                            Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
+                                            i.putExtra("userId", uid);
+                                            i.putExtra("userFullName", finalMatchedUser.getFullName());
+                                            i.putExtra("userEmail", finalMatchedUser.getEmail());
+                                            i.putExtra("userPhone", finalMatchedUser.getPhoneNumber());
+                                            i.putExtra("hasUserInfo", infoSnap.exists());
+                                            startActivity(i);
+                                            finish();
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError error) {
+                                            Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
+                                            i.putExtra("userId", uid);
+                                            i.putExtra("userFullName", finalMatchedUser.getFullName());
+                                            i.putExtra("userEmail", finalMatchedUser.getEmail());
+                                            i.putExtra("userPhone", finalMatchedUser.getPhoneNumber());
+                                            startActivity(i);
+                                            finish();
+                                        }
+                                    });
 
                         } else {
                             txtDisplayInfoLog.setText("Incorrect email or password");
@@ -451,14 +476,34 @@ public class LoginActivity extends AppCompatActivity {
                                         "Face Login Success: " + user.getEmail(),
                                         Toast.LENGTH_LONG).show();
 
-                                Intent i = new Intent(LoginActivity.this,
-                                        ModeSelectionActivity.class);
-                                i.putExtra("userId", finalBestUserId);
-                                i.putExtra("userFullName", user.getFullName());
-                                i.putExtra("userEmail", user.getEmail());
-                                i.putExtra("userPhone", user.getPhoneNumber());
-                                startActivity(i);
-                                finish();
+                                userInfoRef.child(finalBestUserId)
+                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot infoSnap) {
+
+                                                Intent i = new Intent(LoginActivity.this,
+                                                        UserInfoActivity.class);
+                                                i.putExtra("userId", finalBestUserId);
+                                                i.putExtra("userFullName", user.getFullName());
+                                                i.putExtra("userEmail", user.getEmail());
+                                                i.putExtra("userPhone", user.getPhoneNumber());
+                                                i.putExtra("hasUserInfo", infoSnap.exists());
+                                                startActivity(i);
+                                                finish();
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError error) {
+                                                Intent i = new Intent(LoginActivity.this,
+                                                        UserInfoActivity.class);
+                                                i.putExtra("userId", finalBestUserId);
+                                                i.putExtra("userFullName", user.getFullName());
+                                                i.putExtra("userEmail", user.getEmail());
+                                                i.putExtra("userPhone", user.getPhoneNumber());
+                                                startActivity(i);
+                                                finish();
+                                            }
+                                        });
                             }
 
                             @Override
@@ -474,6 +519,7 @@ public class LoginActivity extends AppCompatActivity {
                         "No matching face found",
                         Toast.LENGTH_SHORT).show();
             }
+
         });
     }
 

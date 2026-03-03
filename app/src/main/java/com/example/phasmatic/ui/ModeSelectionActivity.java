@@ -61,24 +61,33 @@ public class ModeSelectionActivity extends AppCompatActivity {
         imgProfile = findViewById(R.id.imgProfile);
 
 
-        BackButtonHelper.attachToGoLogin(this, R.id.btnBack);
+        BackButtonHelper.attachToGoUserInfo(
+                this,
+                R.id.btnBack,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
 
 
         btnErasmus.setOnClickListener(v -> {
-            Intent i = new Intent(ModeSelectionActivity.this, ErasmusChatActivity.class);
+            Intent i = new Intent(ModeSelectionActivity.this, QuestionnaireActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", userFullName);
             i.putExtra("userEmail", userEmail);
             i.putExtra("userPhone", userPhone);
+            i.putExtra("modeType", "erasmus");
             startActivity(i);
         });
 
         btnMaster.setOnClickListener(v -> {
-            Intent i = new Intent(ModeSelectionActivity.this, MasterChatActivity.class);
+            Intent i = new Intent(ModeSelectionActivity.this, QuestionnaireActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", userFullName);
             i.putExtra("userEmail", userEmail);
             i.putExtra("userPhone", userPhone);
+            i.putExtra("modeType", "master");
             startActivity(i);
         });
     }

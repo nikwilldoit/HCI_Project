@@ -28,6 +28,9 @@ public class MasterChatActivity extends AppCompatActivity {
     OpenAIChatClient chatClient;
     private ProfileMenuHelper profileMenuHelper;
 
+    private String userExpectations;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +48,8 @@ public class MasterChatActivity extends AppCompatActivity {
         userFullName = intent.getStringExtra("userFullName");
         userEmail = intent.getStringExtra("userEmail");
         userPhone = intent.getStringExtra("userPhone");
+        userExpectations = intent.getStringExtra("userExpectations");
+
 
         imgProfile = findViewById(R.id.imgProfile);
 
@@ -68,6 +73,11 @@ public class MasterChatActivity extends AppCompatActivity {
         chatClient = new OpenAIChatClient(this);
 
         BackButtonHelper.attach(this, R.id.btnBack);
+
+        if (userExpectations != null && !userExpectations.isEmpty()) {
+            edtUserInput.setText(userExpectations);
+            edtUserInput.setSelection(userExpectations.length());
+        }
 
         btnSend.setOnClickListener(v -> {
             String userMsg = edtUserInput.getText().toString().trim();

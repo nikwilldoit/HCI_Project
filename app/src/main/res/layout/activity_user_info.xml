@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#FF1E3A5F">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tell us about your studies"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="University"
+            android:textColor="@android:color/white"/>
+
+        <Spinner
+            android:id="@+id/spnUniversity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Academic level (e.g. Bachelor)"
+            android:textColor="@android:color/white"/>
+
+        <EditText
+            android:id="@+id/edtAcademicLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@android:color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Languages (comma separated)"
+            android:textColor="@android:color/white"/>
+
+        <EditText
+            android:id="@+id/edtLanguages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@android:color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GPA"
+            android:textColor="@android:color/white"/>
+
+        <EditText
+            android:id="@+id/edtGpa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="12dp"
+            android:background="@android:color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Field of study"
+            android:textColor="@android:color/white"/>
+
+        <EditText
+            android:id="@+id/edtField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@android:color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Budget per year (€)"
+            android:textColor="@android:color/white"/>
+
+        <EditText
+            android:id="@+id/edtBudget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:layout_marginBottom="12dp"
+            android:background="@android:color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Year of studies"
+            android:textColor="@android:color/white"/>
+
+        <Spinner
+            android:id="@+id/spnYear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose your advisor"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="12dp"/>
+
+        <LinearLayout
+            android:id="@+id/llAdvisorChoices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:id="@+id/imgAdvisorMale"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/male"
+                android:contentDescription="Male advisor"
+                android:padding="8dp"
+                android:background="@drawable/advisor_unselected_bg"/>
+
+            <ImageView
+                android:id="@+id/imgAdvisorFemale"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/female"
+                android:contentDescription="Female advisor"
+                android:padding="8dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/advisor_unselected_bg"/>
+
+            <ImageView
+                android:id="@+id/imgAdvisorRobot"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/robot"
+                android:contentDescription="Robot advisor"
+                android:padding="8dp"
+                android:background="@drawable/advisor_unselected_bg"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnSaveUserInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Continue"
+            android:textAllCaps="false"/>
+
+    </LinearLayout>
+</ScrollView>
