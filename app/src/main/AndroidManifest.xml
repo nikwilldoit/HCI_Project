@@ -40,6 +40,8 @@
 
         <activity android:name=".ui.MasterChatActivity" />
 
+        <activity android:name=".ui.QuestionnaireActivity" />
+
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="face" />

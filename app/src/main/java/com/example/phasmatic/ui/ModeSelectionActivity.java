@@ -72,20 +72,22 @@ public class ModeSelectionActivity extends AppCompatActivity {
 
 
         btnErasmus.setOnClickListener(v -> {
-            Intent i = new Intent(ModeSelectionActivity.this, ErasmusChatActivity.class);
+            Intent i = new Intent(ModeSelectionActivity.this, QuestionnaireActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", userFullName);
             i.putExtra("userEmail", userEmail);
             i.putExtra("userPhone", userPhone);
+            i.putExtra("modeType", "erasmus");
             startActivity(i);
         });
 
         btnMaster.setOnClickListener(v -> {
-            Intent i = new Intent(ModeSelectionActivity.this, MasterChatActivity.class);
+            Intent i = new Intent(ModeSelectionActivity.this, QuestionnaireActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", userFullName);
             i.putExtra("userEmail", userEmail);
             i.putExtra("userPhone", userPhone);
+            i.putExtra("modeType", "master");
             startActivity(i);
         });
     }

@@ -1,5 +1,6 @@
 package com.example.phasmatic.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -28,6 +29,9 @@ public class ErasmusChatActivity extends AppCompatActivity {
     private String userId, userFullName, userEmail, userPhone;
     private ProfileMenuHelper profileMenuHelper;
 
+    private String userExpectations;
+
+    @SuppressLint("SetTextI18n") //AFAIREI WARNINGS
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +49,7 @@ public class ErasmusChatActivity extends AppCompatActivity {
         userFullName = intent.getStringExtra("userFullName");
         userEmail = intent.getStringExtra("userEmail");
         userPhone = intent.getStringExtra("userPhone");
+        userExpectations = intent.getStringExtra("userExpectations");
 
         imgProfile = findViewById(R.id.imgProfile);
 
@@ -68,6 +73,11 @@ public class ErasmusChatActivity extends AppCompatActivity {
         chatClient = new OpenAIChatClient(this);
 
         BackButtonHelper.attach(this, R.id.btnBack);
+
+        if (userExpectations != null && !userExpectations.isEmpty()) {
+            edtUserInput.setText(userExpectations);
+            edtUserInput.setSelection(userExpectations.length());
+        }
 
         btnSend.setOnClickListener(v -> {
             String userMsg = edtUserInput.getText().toString().trim();
