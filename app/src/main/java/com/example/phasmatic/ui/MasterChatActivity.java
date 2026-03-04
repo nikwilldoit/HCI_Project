@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.ai.OpenAIChatClient;
+import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 
 public class MasterChatActivity extends AppCompatActivity {
 

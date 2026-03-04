@@ -1,24 +1,17 @@
 package com.example.phasmatic.ui;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.appcompat.widget.PopupMenu;
+
 import com.example.phasmatic.R;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 
 
 public class ModeSelectionActivity extends AppCompatActivity {
@@ -58,7 +51,6 @@ public class ModeSelectionActivity extends AppCompatActivity {
         txtSubtitle = findViewById(R.id.txtSubtitleMode);
         btnErasmus = findViewById(R.id.btnErasmusMode);
         btnMaster = findViewById(R.id.btnMasterMode);
-        imgProfile = findViewById(R.id.imgProfile);
 
 
         BackButtonHelper.attachToGoUserInfo(
