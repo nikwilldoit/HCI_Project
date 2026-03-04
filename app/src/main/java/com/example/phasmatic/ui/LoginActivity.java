@@ -343,19 +343,22 @@ public class LoginActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
 
                             String uid = matchedUser.getId();
-
                             User finalMatchedUser = matchedUser;
+
                             userInfoRef.child(uid)
                                     .addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot infoSnap) {
-
-                                            Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
+                                            Intent i;
+                                            if (infoSnap.exists()) {
+                                                i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
+                                            } else {
+                                                i = new Intent(LoginActivity.this, UserInfoActivity.class);
+                                            }
                                             i.putExtra("userId", uid);
                                             i.putExtra("userFullName", finalMatchedUser.getFullName());
                                             i.putExtra("userEmail", finalMatchedUser.getEmail());
                                             i.putExtra("userPhone", finalMatchedUser.getPhoneNumber());
-                                            i.putExtra("hasUserInfo", infoSnap.exists());
                                             startActivity(i);
                                             finish();
                                         }
@@ -383,6 +386,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     private void loginWithFace(float[] inputEmbedding) {
 
@@ -413,7 +417,6 @@ public class LoginActivity extends AppCompatActivity {
 
                 float bestForThisUser = -1f;
 
-                // Loop σε ΟΛΑ τα embeddings του χρήστη
                 for (Object embObj : embeddingsList) {
 
                     if (!(embObj instanceof List)) continue;
@@ -481,21 +484,23 @@ public class LoginActivity extends AppCompatActivity {
                                             @Override
                                             public void onDataChange(DataSnapshot infoSnap) {
 
-                                                Intent i = new Intent(LoginActivity.this,
-                                                        UserInfoActivity.class);
+                                                Intent i;
+                                                if (infoSnap.exists()) {
+                                                    i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
+                                                } else {
+                                                    i = new Intent(LoginActivity.this, UserInfoActivity.class);
+                                                }
                                                 i.putExtra("userId", finalBestUserId);
                                                 i.putExtra("userFullName", user.getFullName());
                                                 i.putExtra("userEmail", user.getEmail());
                                                 i.putExtra("userPhone", user.getPhoneNumber());
-                                                i.putExtra("hasUserInfo", infoSnap.exists());
                                                 startActivity(i);
                                                 finish();
                                             }
 
                                             @Override
                                             public void onCancelled(DatabaseError error) {
-                                                Intent i = new Intent(LoginActivity.this,
-                                                        UserInfoActivity.class);
+                                                Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
                                                 i.putExtra("userId", finalBestUserId);
                                                 i.putExtra("userFullName", user.getFullName());
                                                 i.putExtra("userEmail", user.getEmail());

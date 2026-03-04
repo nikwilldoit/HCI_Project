@@ -42,6 +42,12 @@
 
         <activity android:name=".ui.QuestionnaireActivity" />
 
+        <activity android:name=".ui.Profile_Menu.AccountActivity" />
+
+        <activity android:name=".ui.Profile_Menu.EditProfileActivity" />
+
+        <activity android:name=".ui.Profile_Menu.EditUserInfoActivity" />
+
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="face" />
