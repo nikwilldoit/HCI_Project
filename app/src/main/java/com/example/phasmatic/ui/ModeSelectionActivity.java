@@ -16,7 +16,7 @@ import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 
 public class ModeSelectionActivity extends AppCompatActivity {
 
-    Button btnErasmus, btnMaster;
+    Button btnErasmus, btnMaster, btnForum;
     ImageButton btnBack;
     TextView txtTitle, txtSubtitle;
     ImageView imgProfile;
