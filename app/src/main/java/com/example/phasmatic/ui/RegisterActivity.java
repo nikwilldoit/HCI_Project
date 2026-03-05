@@ -1,19 +1,13 @@
 package com.example.phasmatic.ui;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Rect;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -21,25 +15,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureException;
+import androidx.camera.core.ExperimentalGetImage;
+import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.video.MediaStoreOutputOptions;
-import androidx.camera.video.PendingRecording;
-import androidx.camera.video.Quality;
-import androidx.camera.video.QualitySelector;
-import androidx.camera.video.Recorder;
-import androidx.camera.video.VideoCapture;
-import androidx.camera.video.VideoRecordEvent;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.util.Consumer;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.data.model.FaceGuideOverlay;
 import com.example.phasmatic.data.model.User;
 import com.example.phasmatic.data.model.User_Face_Embedding;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,95 +42,80 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-import android.media.MediaMetadataRetriever;
-
 
 public class RegisterActivity extends AppCompatActivity {
 
     EditText edtEmailAddressReg, edtPasswordReg, edtFullNameReg, edtPhoneNumberReg;
-    Button btnRegisterReg, btnLoginReg, btnCaptureFace, btnTakePhoto, btnTakeVideo;
+    Button btnRegisterReg, btnLoginReg, btnCaptureFace;
     TextView txtDisplayInfoReg;
 
     private Interpreter tflite;
+    private Toast currentToast;
     DatabaseReference usersRef;
     DatabaseReference usersfaceembeddingRef;
     private static final int CAMERA_PERMISSION_CODE = 100;
 
     private PreviewView viewFinder;
-    private ImageCapture imageCapture;
-    private VideoCapture<Recorder> videoCapture;
-
-    private Recorder recorder;
     private FrameLayout cameraLayout;
     private android.view.View registerLayout;
+    private FaceGuideOverlay faceGuideOverlay;
 
-    private PendingRecording pendingRecording;
-    private androidx.camera.video.Recording activeRecording;
+    public enum FaceAction {
+        CENTER, LOOK_LEFT, LOOK_RIGHT, LOOK_UP, LOOK_DOWN, BLINK, DONE
+    }
 
-    private static final long MAX_VIDEO_DURATION_MS = 5000L;
+    private FaceAction currentAction = FaceAction.CENTER;
 
+    private List<List<Double>> finalEmbeddingsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        //views apo XML
         edtEmailAddressReg = findViewById(R.id.edtEmailAddressReg);
         edtPasswordReg     = findViewById(R.id.edtPasswordReg);
         edtFullNameReg     = findViewById(R.id.edtFullName);
         edtPhoneNumberReg  = findViewById(R.id.edtPhoneNumberReg);
 
-        btnLoginReg    = findViewById(R.id.btnLoginReg);
-        btnRegisterReg = findViewById(R.id.btnRegisterReg);
-        btnCaptureFace = findViewById(R.id.btnCaptureFace);
-        btnTakePhoto   = findViewById(R.id.btnTakePhoto);
-        btnTakeVideo   = findViewById(R.id.btnTakeVideo);
-        txtDisplayInfoReg = findViewById(R.id.txtDisplayInfoReg);
+        btnLoginReg        = findViewById(R.id.btnLoginReg);
+        btnRegisterReg     = findViewById(R.id.btnRegisterReg);
+        btnCaptureFace     = findViewById(R.id.btnCaptureFace);
+        faceGuideOverlay   = findViewById(R.id.faceGuideOverlay);
 
-        cameraLayout   = findViewById(R.id.cameraLayout);
-        registerLayout = findViewById(R.id.registerLayout);
-        viewFinder     = findViewById(R.id.viewFinder);
+        cameraLayout       = findViewById(R.id.cameraLayout);
+        registerLayout     = findViewById(R.id.registerLayout);
+        viewFinder         = findViewById(R.id.viewFinder);
 
-        //Firebase
+        // Firebase
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         usersRef = firebaseDb.getReference("users");
-
         usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
-        //go to login
+        // Go to login
         btnLoginReg.setOnClickListener(v -> {
-            Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(i);
+            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
             finish();
         });
 
-        //capture face
+        // Capture face (μετά ανοίγει η κάμερα)
         btnCaptureFace.setOnClickListener(v -> {
             cameraLayout.setVisibility(android.view.View.VISIBLE);
             registerLayout.setVisibility(android.view.View.GONE);
             checkCameraPermission();
         });
 
-        //take photo
-        btnTakePhoto.setOnClickListener(v -> takePhoto());
-
-        //take video
-        btnTakeVideo.setOnClickListener(v -> onVideoButtonClicked());
-
-        //register
+        // Register user
         btnRegisterReg.setOnClickListener(v -> registerUser());
 
-        //load TFLite model
+        // Load TFLite model
         try {
             AssetFileDescriptor fileDescriptor = getAssets().openFd("facenet.tflite");
             FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
@@ -162,59 +135,36 @@ public class RegisterActivity extends AppCompatActivity {
         String phone    = edtPhoneNumberReg.getText().toString().trim();
 
         if (fullname.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Full name, email and password are required",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Full name, email and password are required", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (finalEmbeddingsList.isEmpty()) {
-            Toast.makeText(this, "Please capture your face first",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please capture your face first", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String userId = usersRef.push().getKey();
-
         String user_face_embeddingId = usersfaceembeddingRef.push().getKey();
 
         if (userId != null) {
-
-
-            User user = new User(
-                    userId,
-                    fullname,
-                    email,
-                    password,
-                    phone
-            );
-
-
-            User_Face_Embedding userFaceEmbedding = new User_Face_Embedding(
-                    user_face_embeddingId,
-                    userId,
-                    finalEmbeddingsList,
-                    user
-            );
+            User user = new User(userId, fullname, email, password, phone);
+            User_Face_Embedding userFaceEmbedding = new User_Face_Embedding(user_face_embeddingId, userId, finalEmbeddingsList, user);
 
             usersRef.child(userId).setValue(user)
-                    .addOnSuccessListener(unused -> {
-
-                        usersfaceembeddingRef.child(user_face_embeddingId)
-                                .setValue(userFaceEmbedding)
-                                .addOnSuccessListener(u -> {
-                                    Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                                    finish();
-                                });
-
-                    });
+                    .addOnSuccessListener(unused -> usersfaceembeddingRef.child(user_face_embeddingId)
+                            .setValue(userFaceEmbedding)
+                            .addOnSuccessListener(u -> {
+                                Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                finish();
+                            }));
         }
     }
 
-    //CAMERA
+    // CAMERA
     private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
             ActivityCompat.requestPermissions(this,
@@ -223,358 +173,240 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == CAMERA_PERMISSION_CODE &&
-                grantResults.length > 0 &&
+        if (requestCode == CAMERA_PERMISSION_CODE && grantResults.length > 0 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         }
     }
 
+    @OptIn(markerClass = ExperimentalGetImage.class)
     private void startCamera() {
-        viewFinder.setVisibility(android.view.View.VISIBLE);
-        btnTakePhoto.setVisibility(android.view.View.VISIBLE);
 
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(this);
 
         cameraProviderFuture.addListener(() -> {
+
             try {
+
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
 
-                imageCapture = new ImageCapture.Builder().build();
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                ImageAnalysis imageAnalysis =
+                        new ImageAnalysis.Builder()
+                                .setBackpressureStrategy(
+                                        ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                .build();
 
-                recorder = new Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HIGHEST)).build();
-                videoCapture = VideoCapture.withOutput(recorder);
+                imageAnalysis.setAnalyzer(
+                        ContextCompat.getMainExecutor(this),
+                        imageProxy -> {
+
+                            if (imageProxy.getImage() == null) {
+                                imageProxy.close();
+                                return;
+                            }
+
+                            InputImage image =
+                                    InputImage.fromMediaImage(
+                                            imageProxy.getImage(),
+                                            imageProxy.getImageInfo().getRotationDegrees());
+
+                            FaceDetectorOptions options =
+                                    new FaceDetectorOptions.Builder()
+                                            .setPerformanceMode(
+                                                    FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                                            .setClassificationMode(
+                                                    FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                                            .build();
+
+                            FaceDetector detector =
+                                    FaceDetection.getClient(options);
+
+                            detector.process(image)
+                                    .addOnSuccessListener(faces -> {
+
+                                        if (!faces.isEmpty()) {
+
+                                            Face face = faces.get(0);
+
+                                            boolean actionCompleted = updateFaceAction(face);
+
+                                            if (actionCompleted) {
+
+                                                Bitmap bitmap = viewFinder.getBitmap();
+
+                                                if (bitmap != null) {
+                                                    processFrame(bitmap, face);
+                                                }
+                                            }
+
+                                            if (currentAction == FaceAction.DONE) {
+
+                                                cameraLayout.setVisibility(android.view.View.GONE);
+                                                registerLayout.setVisibility(android.view.View.VISIBLE);
+                                            }
+                                        }
+
+                                    })
+                                    .addOnCompleteListener(task ->
+                                            imageProxy.close());
+
+                        });
+
+                CameraSelector cameraSelector =
+                        CameraSelector.DEFAULT_FRONT_CAMERA;
 
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture, videoCapture);
+
+                cameraProvider.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        preview,
+                        imageAnalysis
+                );
 
             } catch (Exception e) {
+
                 e.printStackTrace();
             }
+
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void takePhoto() {
+    private void processFrame(Bitmap bitmap, Face face) {
 
-        if (imageCapture == null) {
-            Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        Rect bounds = face.getBoundingBox();
 
-        String fullName = edtFullNameReg.getText().toString().trim();
-        if (fullName.isEmpty()) {
-            Toast.makeText(this, "Please enter your full name first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String safeFileName = fullName.replaceAll("[^a-zA-Z0-9]", "_");
+        int left = Math.max(bounds.left, 0);
+        int top = Math.max(bounds.top, 0);
+        int width = Math.min(bounds.width(), bitmap.getWidth() - left);
+        int height = Math.min(bounds.height(), bitmap.getHeight() - top);
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, safeFileName);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/FaceReg");
-        }
+        if (width <= 0 || height <= 0) return;
 
-        ImageCapture.OutputFileOptions outputOptions =
-                new ImageCapture.OutputFileOptions.Builder(
-                        getContentResolver(),
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        contentValues
-                ).build();
+        Bitmap faceBitmap =
+                Bitmap.createBitmap(bitmap, left, top, width, height);
 
-        imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(this),
-                new ImageCapture.OnImageSavedCallback() {
-                    @Override
-                    public void onError(@NonNull ImageCaptureException exc) {
-                        Log.e("CameraX", "Photo failed: " + exc.getMessage());
-                    }
+        processWithAugmentation(faceBitmap);
 
-                    @Override
-                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
+        showToast("Photo captured");
+    }
+    private void showToast(String msg) {
 
-                        Toast.makeText(RegisterActivity.this,
-                                "Face Captured!", Toast.LENGTH_SHORT).show();
+        if(currentToast != null)
+            currentToast.cancel();
 
-                        try {
-                            Uri imageUri = output.getSavedUri();
-
-                            if (imageUri == null) {
-                                Toast.makeText(RegisterActivity.this,
-                                        "Image URI is null", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-
-                            BitmapFactory.Options options = new BitmapFactory.Options();
-                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-
-                            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
-
-                            if (bitmap == null) {
-                                Toast.makeText(RegisterActivity.this,
-                                        "Bitmap decode failed", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-
-                            int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
-                            Bitmap cropped = Bitmap.createBitmap(
-                                    bitmap,
-                                    (bitmap.getWidth() - size) / 2,
-                                    (bitmap.getHeight() - size) / 2,
-                                    size,
-                                    size
-                            );
-
-
-                            detectFaceAndProcess(cropped);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(RegisterActivity.this,
-                                    "Processing error", Toast.LENGTH_SHORT).show();
-                        }
-
-                        cameraLayout.setVisibility(android.view.View.GONE);
-                        registerLayout.setVisibility(android.view.View.VISIBLE);
-                    }
-                });
+        currentToast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+        currentToast.show();
     }
 
-    private void onVideoButtonClicked() {
-        if (videoCapture == null) {
-            Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        if (activeRecording == null) {
-            //start recording
-            startVideoRecording();
-        } else {
-            //stop recording
-            stopVideoRecording();
-        }
-    }
+    private boolean updateFaceAction(Face face) {
 
-    private void startVideoRecording() {
-        String fullName = edtFullNameReg.getText().toString().trim();
-        if (fullName.isEmpty()) {
-            Toast.makeText(this, "Please enter your full name first", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        float yaw = face.getHeadEulerAngleY();
+        float pitch = face.getHeadEulerAngleX();
 
-        String safeFileName = fullName.replaceAll("[^a-zA-Z0-9]", "_");
+        switch (currentAction) {
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, safeFileName);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/FaceReg");
-        }
+            case CENTER:
 
-        MediaStoreOutputOptions mediaStoreOutputOptions =
-                new MediaStoreOutputOptions.Builder(
-                        getContentResolver(),
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-                        .setContentValues(contentValues)
-                        .build();
+                faceGuideOverlay.setAction(FaceAction.CENTER);
+                showToast("Look straight");
 
-        //arxizei to session me ta embeddings
-        finalEmbeddingsList.clear();
-
-        pendingRecording = videoCapture.getOutput()
-                .prepareRecording(this, mediaStoreOutputOptions);
-
-        activeRecording = pendingRecording.start(
-                ContextCompat.getMainExecutor(this),
-                videoRecordEvent -> {
-                    if (videoRecordEvent instanceof VideoRecordEvent.Start) {
-                        btnTakeVideo.setText("Stop Video");
-                    } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
-                        btnTakeVideo.setText("Start Video");
-                        activeRecording = null;
-
-                        VideoRecordEvent.Finalize finalizeEvent =
-                                (VideoRecordEvent.Finalize) videoRecordEvent;
-
-                        if (finalizeEvent.getError() == VideoRecordEvent.Finalize.ERROR_NONE) {
-                            Toast.makeText(this, "Video saved!", Toast.LENGTH_SHORT).show();
-
-                            Uri videoUri = finalizeEvent.getOutputResults().getOutputUri();
-                            if (videoUri != null) {
-
-                                //ejagei 5 frames apo to video
-                                List<Bitmap> frames = null;
-                                try {
-                                    frames = extractFramesFromVideo(videoUri, 5);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-
-                                if (frames.isEmpty()) {
-                                    Toast.makeText(this, "No frames extracted", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    //gia kathe frame kanei face detection + embeddings
-                                    for (Bitmap frame : frames) {
-                                        detectFaceAndProcess(frame);
-                                    }
-                                }
-                            }
-
-                        } else {
-                            Toast.makeText(this, "Video error: " + finalizeEvent.getError(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        cameraLayout.setVisibility(android.view.View.GONE);
-                        registerLayout.setVisibility(android.view.View.VISIBLE);
-                    }
+                if (Math.abs(yaw) < 10 && Math.abs(pitch) < 10) {
+                    showToast("Turn your head left");
+                    currentAction = FaceAction.LOOK_LEFT;
+                    return true;
                 }
-        );
-        new android.os.Handler().postDelayed(() -> {
-            if (activeRecording != null) {
-                stopVideoRecording();
-            }
-        }, MAX_VIDEO_DURATION_MS);
-    }
+                break;
 
+            case LOOK_LEFT:
 
-    private void stopVideoRecording() {
-        if (activeRecording != null) {
-            activeRecording.stop();
-            activeRecording = null;
-        }
-    }
+                faceGuideOverlay.setAction(FaceAction.LOOK_LEFT);
 
-    //frames apo to video
-    private List<Bitmap> extractFramesFromVideo(Uri videoUri, int frameCount) throws IOException {
-        List<Bitmap> frames = new ArrayList<>();
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(this, videoUri);
-
-            String durationStr = retriever.extractMetadata(
-                    MediaMetadataRetriever.METADATA_KEY_DURATION);
-            long durationMs = Long.parseLong(durationStr);
-
-            for (int i = 0; i < frameCount; i++) {
-                long timeUs = (durationMs * 1000L * (i + 1)) / (frameCount + 1);
-                Bitmap frame = retriever.getFrameAtTime(
-                        timeUs,
-                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-                );
-                if (frame != null) {
-                    frames.add(frame);
+                if (yaw > 20) {
+                    showToast("Turn your head right");
+                    currentAction = FaceAction.LOOK_RIGHT;
+                    return true;
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            retriever.release();
+                break;
+
+            case LOOK_RIGHT:
+
+                faceGuideOverlay.setAction(FaceAction.LOOK_RIGHT);
+
+                if (yaw < -20) {
+                    showToast("Look up");
+                    currentAction = FaceAction.LOOK_UP;
+                    return true;
+                }
+                break;
+
+            case LOOK_UP:
+
+                faceGuideOverlay.setAction(FaceAction.LOOK_UP);
+
+                if (pitch < -15) {
+                    showToast("Look down");
+                    currentAction = FaceAction.LOOK_DOWN;
+                    return true;
+                }
+                break;
+
+            case LOOK_DOWN:
+
+                faceGuideOverlay.setAction(FaceAction.LOOK_DOWN);
+
+                if (pitch > 15) {
+                    showToast("Blink your eyes");
+                    currentAction = FaceAction.BLINK;
+                    return true;
+                }
+                break;
+
+            case BLINK:
+
+                faceGuideOverlay.setAction(FaceAction.BLINK);
+
+                if (face.getLeftEyeOpenProbability() != null &&
+                        face.getLeftEyeOpenProbability() < 0.3) {
+
+                    currentAction = FaceAction.DONE;
+                    return true;
+                }
+                break;
+
+            case DONE:
+                return false;
         }
-        return frames;
+
+        return false;
     }
-
-
-    private float[] runModel(Bitmap bitmap) {
-
-        ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
-        inputBuffer.order(ByteOrder.nativeOrder());
-
-        int[] pixels = new int[160 * 160];
-        bitmap.getPixels(pixels, 0, 160, 0, 0, 160, 160);
-
-        for (int pixel : pixels) {
-            float r = ((pixel >> 16) & 0xFF) / 255.0f;
-            float g = ((pixel >> 8) & 0xFF) / 255.0f;
-            float b = (pixel & 0xFF) / 255.0f;
-
-            inputBuffer.putFloat(r);
-            inputBuffer.putFloat(g);
-            inputBuffer.putFloat(b);
-        }
-
-        float[][] output = new float[1][128];
-
-        tflite.run(inputBuffer, output);
-
-        return output[0];
-    }
-
-    private List<List<Double>> finalEmbeddingsList = new ArrayList<>();
 
     private void processWithAugmentation(Bitmap faceBitmap) {
-
         List<float[]> embeddings = generateEmbeddings(faceBitmap);
-
-        //finalEmbeddingsList.clear();
-
         for (float[] emb : embeddings) {
             List<Double> list = new ArrayList<>();
             for (float f : emb) list.add((double) f);
             finalEmbeddingsList.add(list);
         }
-
         Toast.makeText(this, "Face processed successfully!", Toast.LENGTH_SHORT).show();
     }
 
-
-    private void detectFaceAndProcess(Bitmap bitmap) {
-
-        InputImage image = InputImage.fromBitmap(bitmap, 0);
-
-        FaceDetectorOptions options =
-                new FaceDetectorOptions.Builder()
-                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-                        .build();
-
-        FaceDetector detector = FaceDetection.getClient(options);
-
-        detector.process(image)
-                .addOnSuccessListener(faces -> {
-
-                    if (faces.isEmpty()) {
-                        Toast.makeText(this, "No face detected", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    Face face = faces.get(0);
-                    Rect bounds = face.getBoundingBox();
-
-                    Bitmap faceBitmap = Bitmap.createBitmap(
-                            bitmap,
-                            Math.max(bounds.left, 0),
-                            Math.max(bounds.top, 0),
-                            Math.min(bounds.width(), bitmap.getWidth() - bounds.left),
-                            Math.min(bounds.height(), bitmap.getHeight() - bounds.top)
-                    );
-
-                    processWithAugmentation(faceBitmap);
-
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Face detection failed", Toast.LENGTH_SHORT).show();
-                });
-    }
-
     private List<Bitmap> augmentImage(Bitmap original) {
-
         List<Bitmap> augmented = new ArrayList<>();
-
         augmented.add(original);
 
         try {
             Matrix flipMatrix = new Matrix();
             flipMatrix.preScale(-1.0f, 1.0f);
-            augmented.add(Bitmap.createBitmap(original, 0, 0,
-                    original.getWidth(), original.getHeight(), flipMatrix, true));
+            augmented.add(Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), flipMatrix, true));
         } catch (Exception ignored) {}
 
         try {
@@ -585,59 +417,60 @@ public class RegisterActivity extends AppCompatActivity {
         try {
             Matrix rotate = new Matrix();
             rotate.postRotate(5);
-            augmented.add(Bitmap.createBitmap(original, 0, 0,
-                    original.getWidth(), original.getHeight(), rotate, true));
+            augmented.add(Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), rotate, true));
         } catch (Exception ignored) {}
 
         return augmented;
     }
+
     private Bitmap changeBrightness(Bitmap bmp, float factor) {
         Bitmap newBitmap = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), bmp.getConfig());
-
         for (int x = 0; x < bmp.getWidth(); x++) {
             for (int y = 0; y < bmp.getHeight(); y++) {
-
                 int pixel = bmp.getPixel(x, y);
-
                 int r = Math.min(255, (int)(((pixel >> 16) & 0xFF) * factor));
                 int g = Math.min(255, (int)(((pixel >> 8) & 0xFF) * factor));
                 int b = Math.min(255, (int)((pixel & 0xFF) * factor));
-
                 newBitmap.setPixel(x, y, (0xFF << 24) | (r << 16) | (g << 8) | b);
             }
         }
         return newBitmap;
     }
 
-
     private List<float[]> generateEmbeddings(Bitmap faceBitmap) {
-
         List<float[]> embeddings = new ArrayList<>();
-
         List<Bitmap> augmentedImages = augmentImage(faceBitmap);
-
         for (Bitmap bmp : augmentedImages) {
-
             Bitmap resized = Bitmap.createScaledBitmap(bmp, 160, 160, true);
             float[] emb = runModel(resized);
-
             embeddings.add(normalize(emb));
         }
-
         return embeddings;
     }
 
+    private float[] runModel(Bitmap bitmap) {
+        ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
+        inputBuffer.order(ByteOrder.nativeOrder());
+        int[] pixels = new int[160 * 160];
+        bitmap.getPixels(pixels, 0, 160, 0, 0, 160, 160);
+
+        for (int pixel : pixels) {
+            float r = ((pixel >> 16) & 0xFF) / 255.0f;
+            float g = ((pixel >> 8) & 0xFF) / 255.0f;
+            float b = (pixel & 0xFF) / 255.0f;
+            inputBuffer.putFloat(r); inputBuffer.putFloat(g); inputBuffer.putFloat(b);
+        }
+
+        float[][] output = new float[1][128];
+        tflite.run(inputBuffer, output);
+        return output[0];
+    }
 
     private float[] normalize(float[] emb) {
         float sum = 0f;
         for (float v : emb) sum += v * v;
         float norm = (float) Math.sqrt(sum);
-
-        for (int i = 0; i < emb.length; i++) {
-            emb[i] /= norm;
-        }
+        for (int i = 0; i < emb.length; i++) emb[i] /= norm;
         return emb;
     }
-
-
 }

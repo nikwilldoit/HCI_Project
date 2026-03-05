@@ -402,7 +402,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            float globalBestSimilarity = -1f;
+            float bestScore = -1f;
             String bestUserId = null;
 
             for (DataSnapshot snapshot : task.getResult().getChildren()) {
@@ -415,7 +415,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 List<?> embeddingsList = (List<?>) embeddingsObj;
 
-                float bestForThisUser = -1f;
+                float[] avgEmbedding = new float[128];
+                int count = 0;
 
                 for (Object embObj : embeddingsList) {
 
@@ -423,34 +424,34 @@ public class LoginActivity extends AppCompatActivity {
 
                     List<?> rawVector = (List<?>) embObj;
 
-                    float[] dbEmbedding = new float[rawVector.size()];
+                    if (rawVector.size() != 128) continue;
 
-                    try {
-                        for (int i = 0; i < rawVector.size(); i++) {
-                            dbEmbedding[i] = ((Number) rawVector.get(i)).floatValue();
-                        }
-                    } catch (Exception e) {
-                        continue;
+                    for (int i = 0; i < 128; i++) {
+                        avgEmbedding[i] += ((Number) rawVector.get(i)).floatValue();
                     }
 
-                    if (dbEmbedding.length != inputEmbedding.length) continue;
-
-                    float sim = cosineSimilarity(inputEmbedding, dbEmbedding);
-
-                    if (sim > bestForThisUser) {
-                        bestForThisUser = sim;
-                    }
+                    count++;
                 }
 
-                if (bestForThisUser > globalBestSimilarity) {
-                    globalBestSimilarity = bestForThisUser;
+                if (count == 0) continue;
+
+                for (int i = 0; i < 128; i++) {
+                    avgEmbedding[i] /= count;
+                }
+
+                avgEmbedding = normalize(avgEmbedding);
+
+                float similarity = cosineSimilarity(inputEmbedding, avgEmbedding);
+
+                if (similarity > bestScore) {
+                    bestScore = similarity;
                     bestUserId = userId;
                 }
             }
 
-            float THRESHOLD = 0.8f;
+            float THRESHOLD = 0.75f;
 
-            if (globalBestSimilarity > THRESHOLD && bestUserId != null) {
+            if (bestScore > THRESHOLD && bestUserId != null) {
 
                 String finalBestUserId = bestUserId;
 
@@ -468,6 +469,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }
 
                                 User user = userSnapshot.getValue(User.class);
+
                                 if (user == null) {
                                     Toast.makeText(LoginActivity.this,
                                             "User data error",
@@ -481,30 +483,37 @@ public class LoginActivity extends AppCompatActivity {
 
                                 userInfoRef.child(finalBestUserId)
                                         .addListenerForSingleValueEvent(new ValueEventListener() {
+
                                             @Override
                                             public void onDataChange(DataSnapshot infoSnap) {
 
                                                 Intent i;
+
                                                 if (infoSnap.exists()) {
                                                     i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
                                                 } else {
                                                     i = new Intent(LoginActivity.this, UserInfoActivity.class);
                                                 }
+
                                                 i.putExtra("userId", finalBestUserId);
                                                 i.putExtra("userFullName", user.getFullName());
                                                 i.putExtra("userEmail", user.getEmail());
                                                 i.putExtra("userPhone", user.getPhoneNumber());
+
                                                 startActivity(i);
                                                 finish();
                                             }
 
                                             @Override
                                             public void onCancelled(DatabaseError error) {
+
                                                 Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
+
                                                 i.putExtra("userId", finalBestUserId);
                                                 i.putExtra("userFullName", user.getFullName());
                                                 i.putExtra("userEmail", user.getEmail());
                                                 i.putExtra("userPhone", user.getPhoneNumber());
+
                                                 startActivity(i);
                                                 finish();
                                             }
@@ -520,11 +529,11 @@ public class LoginActivity extends AppCompatActivity {
                         });
 
             } else {
+
                 Toast.makeText(this,
                         "No matching face found",
                         Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 
