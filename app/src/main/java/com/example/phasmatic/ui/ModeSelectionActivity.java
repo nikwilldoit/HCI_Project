@@ -6,22 +6,28 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.net.Uri;
+import android.widget.VideoView;
+import android.widget.MediaController;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.ui.Forum.ForumActivity;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 
 
 public class ModeSelectionActivity extends AppCompatActivity {
 
-    Button btnErasmus, btnMaster;
+    Button btnErasmus, btnMaster, btnForum;
     ImageButton btnBack;
     TextView txtTitle, txtSubtitle;
     ImageView imgProfile;
     private String userId, userFullName, userEmail, userPhone;
     private ProfileMenuHelper profileMenuHelper;
+    private VideoView videoView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +57,9 @@ public class ModeSelectionActivity extends AppCompatActivity {
         txtSubtitle = findViewById(R.id.txtSubtitleMode);
         btnErasmus = findViewById(R.id.btnErasmusMode);
         btnMaster = findViewById(R.id.btnMasterMode);
+        videoView = findViewById(R.id.videoView);
+        btnForum = findViewById(R.id.btnForum);
+
 
 
         BackButtonHelper.attachToGoUserInfo(
@@ -82,6 +91,29 @@ public class ModeSelectionActivity extends AppCompatActivity {
             i.putExtra("modeType", "master");
             startActivity(i);
         });
+
+        btnForum.setOnClickListener(v -> {
+            Intent i = new Intent(ModeSelectionActivity.this, ForumActivity.class);
+            i.putExtra("userId", userId);
+            i.putExtra("userFullName", userFullName);
+            i.putExtra("userEmail", userEmail);
+            i.putExtra("userPhone", userPhone);
+            //i.putExtra("modeType", "master");
+            startActivity(i);
+        });
+
+        String path = "android.resource://" + getPackageName() + "/" + R.raw.indian_video;
+        Uri uri = Uri.parse(path);
+
+        MediaController mediaController = new MediaController(this);
+        mediaController.setAnchorView(videoView);
+        videoView.setMediaController(mediaController);
+
+        videoView.setVideoURI(uri);
+        videoView.requestFocus();
+        videoView.start();
+
+        videoView.setOnCompletionListener(mp -> videoView.start());
     }
 }
 
