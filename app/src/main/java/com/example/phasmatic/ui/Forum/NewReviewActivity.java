@@ -195,7 +195,10 @@ public class NewReviewActivity extends AppCompatActivity {
         }
 
         long likes = 0L;
-        long timestamp = System.currentTimeMillis();
+        String createdAt = new java.text.SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                java.util.Locale.getDefault()
+        ).format(new java.util.Date());
 
         ForumReview review = new ForumReview(
                 id,
@@ -206,9 +209,10 @@ public class NewReviewActivity extends AppCompatActivity {
                 country,
                 text,
                 rating,
-                timestamp,
-                likes
+                likes,
+                createdAt
         );
+
 
         forumRef.child(id)
                 .setValue(review)
