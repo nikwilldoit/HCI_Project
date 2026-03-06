@@ -62,7 +62,7 @@ public class ModeSelectionActivity extends AppCompatActivity {
 
 
 
-        BackButtonHelper.attachToGoUserInfo(
+        BackButtonHelper.attachToGoModeSelection(
                 this,
                 R.id.btnBack,
                 userId,
