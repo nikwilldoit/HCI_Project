@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.ui.Forum.ForumActivity;
 
 public class BackButtonHelper {
 
@@ -78,7 +79,7 @@ public class BackButtonHelper {
         if (btnBack == null) return;
 
         btnBack.setOnClickListener(v -> {
-            Intent i = new Intent(activity, ModeSelectionActivity.class);
+            Intent i = new Intent(activity, ForumActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", fullName);
             i.putExtra("userEmail", email);

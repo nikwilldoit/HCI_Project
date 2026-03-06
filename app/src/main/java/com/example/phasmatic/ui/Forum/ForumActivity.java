@@ -79,7 +79,7 @@ public class ForumActivity extends AppCompatActivity {
 
         rvReviews = findViewById(R.id.rvReviews);
         rvReviews.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ForumAdapter(filteredReviews, review -> {
+        adapter = new ForumAdapter(filteredReviews, userId, review -> {
             Intent i = new Intent(ForumActivity.this, ReviewDetailActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", userFullName);

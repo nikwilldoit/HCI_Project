@@ -9,14 +9,24 @@ public class ForumReview {
     public String country;
     public String text;
     public float rating; //1-5
-    public long timestamp;
     public int likes = 0;
+    public long timestamp;
 
 
 
     public ForumReview() {}
 
-    public ForumReview(String id, String user_id, String user_name, String type, String university, String country, String text, float rating, long timestamp) {
+    public ForumReview(String id,
+                       String user_id,
+                       String user_name,
+                       String type,
+                       String university,
+                       String country,
+                       String text,
+                       float rating,
+                       long likes,
+                       long timestamp) {
+
         this.id = id;
         this.user_id = user_id;
         this.user_name = user_name;
@@ -25,7 +35,16 @@ public class ForumReview {
         this.country = country;
         this.text = text;
         this.rating = rating;
+        this.likes = Math.toIntExact(likes);
         this.timestamp = timestamp;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
     }
 
     public String getId() {
