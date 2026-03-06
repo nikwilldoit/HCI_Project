@@ -16,42 +16,41 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="20dp"
-        android:layout_marginStart="5dp"
+        android:layout_marginStart="12dp"
         android:background="@android:color/transparent"
         android:src="@drawable/baseline_arrow_back_24"
-        android:contentDescription="Back"
         app:tint="@android:color/black" />
 
     <ImageView
         android:id="@+id/imgProfile"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="5dp"
-        android:clickable="true"
-        android:focusable="true"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/profile_circle_bg"
         android:scaleType="centerCrop"
+        android:padding="4dp"
         android:src="@drawable/baseline_face_24" />
-
 
     <LinearLayout
         android:id="@+id/contentLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_below="@id/btnBack"
         android:orientation="vertical"
-        android:gravity="center"
-        android:layout_centerInParent="true">
+        android:paddingHorizontal="24dp"
+        android:paddingTop="32dp">
 
         <TextView
             android:id="@+id/txtTitleMode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="What do you want to plan?"
-            android:textSize="24sp"
+            android:text="Explore Your Options"
+            android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/black" />
 
         <TextView
             android:id="@+id/txtSubtitleMode"
@@ -60,35 +59,110 @@
             android:layout_marginTop="4dp"
             android:text="Choose the type of studies"
             android:textSize="14sp"
-            android:textColor="#B3FFFFFF" />
+            android:textColor="#CC000000" />
 
-        <Space
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="32dp" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
 
-        <Button
-            android:id="@+id/btnErasmusMode"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:backgroundTint="#FF4CAF50"
-            android:text="Erasmus mobility"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textColor="@android:color/white" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:gravity="center">
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+                <Button
+                    android:id="@+id/btnErasmusMode"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Erasmus"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    android:textColor="@android:color/black"
+                    android:background="@drawable/mode_pill_button" />
 
-        <Button
-            android:id="@+id/btnMasterMode"
+                <Button
+                    android:id="@+id/btnMasterMode"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Master"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    android:textColor="@android:color/black"
+                    android:background="@drawable/mode_pill_button" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/videoContainer"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:backgroundTint="#FF03A9F4"
-            android:text="Master"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textColor="@android:color/white" />
+            android:layout_height="220dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/video_frame_bg">
+
+            <VideoView
+                android:id="@+id/videoView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:keepScreenOn="true" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/txtTojoinForum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Explore the Famous Forum"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/txtForum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Join the Forum"
+            android:textSize="14sp"
+            android:textColor="#CC000000" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="1"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/btnForum"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Forum"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    android:textColor="@android:color/black"
+                    android:background="@drawable/mode_pill_button" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
 
     </LinearLayout>
 
