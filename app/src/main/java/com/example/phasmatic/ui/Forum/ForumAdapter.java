@@ -17,10 +17,17 @@ import java.util.List;
 
 public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
-    private final List<ForumReview> items;
+    public interface OnReviewClickListener {
+        void onReviewClick(ForumReview review);
+    }
 
-    public ForumAdapter(List<ForumReview> items) {
+
+    private final List<ForumReview> items;
+    private final OnReviewClickListener listener;
+
+    public ForumAdapter(List<ForumReview> items, OnReviewClickListener listener) {
         this.items = items;
+        this.listener = listener;
     }
 
     @NonNull
@@ -33,25 +40,20 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
     @Override
     public void onBindViewHolder(@NonNull ForumVH h, int pos) {
-
         ForumReview r = items.get(pos);
 
         String title = (r.type.equals("erasmus") ? "Erasmus · " : "Master · ") + r.university;
-
         h.txtTitle.setText(title);
         h.txtUser.setText("by " + r.user_name);
         h.ratingBar.setRating(r.rating);
         h.txtText.setText(r.text);
-
         h.txtLikes.setText(String.valueOf(r.likes));
 
         h.btnLike.setImageResource(R.drawable.heartempty);
         h.btnLike.setTag(false);
 
         h.btnLike.setOnClickListener(v -> {
-
             boolean liked = (boolean) v.getTag();
-
             if (liked) {
                 h.btnLike.setImageResource(R.drawable.heartempty);
                 r.likes--;
@@ -61,11 +63,14 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
                 r.likes++;
                 v.setTag(true);
             }
-
             h.txtLikes.setText(String.valueOf(r.likes));
+        });
 
+        h.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onReviewClick(r);
         });
     }
+
 
     @Override
     public int getItemCount() {
