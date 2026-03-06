@@ -1,17 +1,26 @@
 package com.example.phasmatic.ui.Profile_Menu;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.ui.BackButtonHelper;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.io.ByteArrayOutputStream;
 
 public class AccountActivity extends AppCompatActivity {
     ImageButton btnBack;
@@ -21,6 +30,13 @@ public class AccountActivity extends AppCompatActivity {
             txtLanguages, txtGpa, txtBudget, txtYearOfStudies, txtAdvisorType;
     private String userId;
     private String userFullName, userEmail, userPhone;
+
+    private ImageView imgProfilePhoto;
+    private Uri imageUri;
+    private StorageReference storageRef;
+
+    private static final int PICK_IMAGE = 1;
+    private static final int TAKE_PHOTO = 2;
 
     private DatabaseReference usersRef;
     private DatabaseReference userInfoRef;
@@ -81,7 +97,101 @@ public class AccountActivity extends AppCompatActivity {
             i.putExtra("userId", userId);
             startActivity(i);
         });
+
+        imgProfilePhoto = findViewById(R.id.imgProfilePhoto);
+
+        storageRef = FirebaseStorage.getInstance().getReference("profile_images");
+
+        imgProfilePhoto.setOnClickListener(v -> showImageOptions());
+
     }
+
+    private void showImageOptions() {
+
+        String[] options = {"Take photo", "Choose from gallery"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Profile Photo");
+
+        builder.setItems(options, (dialog, which) -> {
+
+            if (which == 0) {
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, TAKE_PHOTO);
+            }
+
+            if (which == 1) {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+                galleryIntent.setType("image/*");
+                startActivityForResult(galleryIntent, PICK_IMAGE);
+            }
+
+        });
+
+        builder.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(resultCode == RESULT_OK){
+
+            if(requestCode == PICK_IMAGE){
+
+                imageUri = data.getData();
+                imgProfilePhoto.setImageURI(imageUri);
+
+                uploadImage();
+
+            }
+
+            if(requestCode == TAKE_PHOTO){
+
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                photo.compress(Bitmap.CompressFormat.JPEG,100,baos);
+
+                byte[] dataBytes = baos.toByteArray();
+
+                uploadCameraImage(dataBytes);
+
+            }
+
+        }
+    }
+
+    private void uploadImage(){
+
+        StorageReference fileRef = storageRef.child(userId + ".jpg");
+
+        fileRef.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot ->
+                        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+
+                            String url = uri.toString();
+
+                            usersRef.child(userId).child("profileImageUrl").setValue(url);
+
+                        }));
+    }
+    private void uploadCameraImage(byte[] data){
+
+        StorageReference fileRef = storageRef.child(userId + ".jpg");
+
+        fileRef.putBytes(data)
+                .addOnSuccessListener(taskSnapshot ->
+                        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+
+                            String url = uri.toString();
+
+                            usersRef.child(userId).child("profileImageUrl").setValue(url);
+
+                        }));
+    }
+
+
 
     private void loadUser() {
         if (userId == null || userId.isEmpty()) return;
@@ -96,6 +206,13 @@ public class AccountActivity extends AppCompatActivity {
             txtFullName.setText(userFullName != null ? userFullName : "-");
             txtEmail.setText(userEmail != null ? userEmail : "-");
             txtPhone.setText(userPhone != null ? userPhone : "-");
+//            String photoUrl = snapshot.child("profileImageUrl").getValue(String.class);
+
+//            if(photoUrl != null){
+//                Glide.with(this)
+//                        .load(photoUrl)
+//                        .into(imgProfilePhoto);
+//            }
         });
     }
 
