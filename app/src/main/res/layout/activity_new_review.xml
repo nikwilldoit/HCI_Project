@@ -19,7 +19,7 @@
             android:layout_marginStart="12dp"
             android:background="@android:color/transparent"
             android:src="@drawable/baseline_arrow_back_24"
-            app:tint="@android:color/black" />
+            app:tint="@android:color/white" />
 
         <ImageView
             android:id="@+id/imgProfile"
@@ -37,7 +37,7 @@
         <LinearLayout
             android:id="@+id/contentLayout"
             android:layout_width="match_parent"
-            android:layout_height="493dp"
+            android:layout_height="wrap_content"
             android:layout_below="@id/btnBack"
             android:layout_marginTop="5dp"
             android:orientation="vertical"
@@ -58,32 +58,52 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp" />
 
-            <EditText
-                android:id="@+id/edtCountry"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutCountry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@android:color/white"
                 android:hint="Country"
-                android:padding="8dp" />
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                app:hintTextColor="@android:color/white"
+                app:boxStrokeColor="@android:color/white">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropCountry"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textColorHint="#80FFFFFF"
+                    android:background="@android:color/transparent"
+                    android:inputType="none"
+                    android:clickable="true"
+                    android:dropDownHeight="300dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutUniversity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="University"
+                app:hintTextColor="@android:color/white"
+                app:boxStrokeColor="@android:color/white">
+
+                <Spinner
+                    android:id="@+id/spnUniversity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <EditText
-                android:id="@+id/edtUniversity"
+                android:id="@+id/edtRating"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@android:color/white"
-                android:hint="University"
+                android:hint="Rating (1-5)"
+                android:inputType="number"
                 android:padding="8dp" />
-
-            <RatingBar
-                android:id="@+id/ratingBar"
-                style="?android:attr/ratingBarStyleIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:numStars="5"
-                android:stepSize="1" />
 
             <EditText
                 android:id="@+id/edtText"
