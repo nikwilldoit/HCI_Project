@@ -50,6 +50,7 @@ dependencies {
 
     // TensorFlow Lite (μόνο το βασικό)
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
+    implementation libs.firebase.storage
 
     // CameraX
     def camerax_version = "1.3.0"
