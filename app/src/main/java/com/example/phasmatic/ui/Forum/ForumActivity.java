@@ -81,6 +81,11 @@ public class ForumActivity extends AppCompatActivity {
         rvReviews.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ForumAdapter(filteredReviews, review -> {
             Intent i = new Intent(ForumActivity.this, ReviewDetailActivity.class);
+            i.putExtra("userId", userId);
+            i.putExtra("userFullName", userFullName);
+            i.putExtra("userEmail", userEmail);
+            i.putExtra("userPhone", userPhone);
+            i.putExtra("modeType", "master");
             i.putExtra("type", review.type);
             i.putExtra("university", review.university);
             i.putExtra("country", review.country);

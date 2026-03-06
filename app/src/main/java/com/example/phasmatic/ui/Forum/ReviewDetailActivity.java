@@ -1,5 +1,6 @@
 package com.example.phasmatic.ui.Forum;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -14,6 +15,8 @@ import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 
 public class ReviewDetailActivity extends AppCompatActivity {
 
+    ImageView imgProfile;
+    ImageButton btnBack;
     private ProfileMenuHelper profileMenuHelper;
 
     @Override
@@ -51,14 +54,40 @@ public class ReviewDetailActivity extends AppCompatActivity {
         txtText.setText(text);
         txtLikes.setText(likes + " likes");
 
-        BackButtonHelper.attach(
+        BackButtonHelper.attachToGoForum(
                 this,
-                R.id.btnBack
+                R.id.btnBack,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
         );
 
-        if (userId != null) {
-            profileMenuHelper = new ProfileMenuHelper(this, userId, userFullName, userEmail, userPhone);
-            imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
-        }
+        Intent intent = getIntent();
+        userId = intent.getStringExtra("userId");
+        userFullName = intent.getStringExtra("userFullName");
+        userEmail = intent.getStringExtra("userEmail");
+        userPhone = intent.getStringExtra("userPhone");
+
+        imgProfile = findViewById(R.id.imgProfile);
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
+
+        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+
+        BackButtonHelper.attachToGoForum(
+                this,
+                R.id.btnBack,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
     }
 }
