@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ForumReview;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -29,7 +30,6 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
     private final DatabaseReference forumRef;
     private final DatabaseReference reviewLikesRef;
     private final String userId;
-    //private final String reviewId;
 
     public ForumAdapter(List<ForumReview> items,
                         String userId,
@@ -76,21 +76,27 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         h.txtText.setText(r.text != null ? r.text : "");
         h.txtLikes.setText(String.valueOf(r.likes));
 
+        h.btnLike.setTag(false);
+        h.btnLike.setImageResource(R.drawable.heartempty);
 
         if (r.id != null && userId != null) {
-            reviewLikesRef.child(r.id).child(userId).get()
+            reviewLikesRef.orderByChild("review_id")
+                    .equalTo(r.id)
+                    .get()
                     .addOnSuccessListener(snap -> {
-                        boolean liked = Boolean.TRUE.equals(snap.getValue(Boolean.class));
-                        reviewLikesRef.child("user_id").setValue(userId);
-                        reviewLikesRef.child("review_id").setValue(r.);
+                        boolean liked = false;
+                        for (DataSnapshot child : snap.getChildren()) {
+                            String uid = child.child("user_id").getValue(String.class);
+                            if (userId.equals(uid)) {
+                                liked = true;
+                                break;
+                            }
+                        }
                         h.btnLike.setTag(liked);
                         h.btnLike.setImageResource(
                                 liked ? R.drawable.heartfull : R.drawable.heartempty
                         );
                     });
-        } else {
-            h.btnLike.setTag(false);
-            h.btnLike.setImageResource(R.drawable.heartempty);
         }
 
         h.btnLike.setOnClickListener(v -> {
@@ -107,7 +113,19 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
                 h.txtLikes.setText(String.valueOf(r.likes));
 
                 forumRef.child(r.id).child("likes").setValue(r.likes);
-                reviewLikesRef.child(r.id).child(userId).setValue(null);
+
+                reviewLikesRef.orderByChild("review_id")
+                        .equalTo(r.id)
+                        .get()
+                        .addOnSuccessListener(snap -> {
+                            for (DataSnapshot child : snap.getChildren()) {
+                                String uid = child.child("user_id").getValue(String.class);
+                                if (userId.equals(uid)) {
+                                    child.getRef().removeValue();
+                                }
+                            }
+                        });
+
             } else {
                 //like
                 v.setTag(true);
@@ -116,7 +134,18 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
                 h.txtLikes.setText(String.valueOf(r.likes));
 
                 forumRef.child(r.id).child("likes").setValue(r.likes);
-                reviewLikesRef.child(r.id).child(userId).setValue(true);
+
+                String key = reviewLikesRef.push().getKey();
+                if (key != null) {
+                    String likedAt = new java.text.SimpleDateFormat(
+                            "yyyy-MM-dd HH:mm:ss",
+                            java.util.Locale.getDefault()
+                    ).format(new java.util.Date());
+
+                    reviewLikesRef.child(key).child("review_id").setValue(r.id);
+                    reviewLikesRef.child(key).child("user_id").setValue(userId);
+                    reviewLikesRef.child(key).child("liked_at").setValue(likedAt);
+                }
             }
         });
 
