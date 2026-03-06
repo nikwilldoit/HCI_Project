@@ -98,7 +98,7 @@ public class ModeSelectionActivity extends AppCompatActivity {
             i.putExtra("userFullName", userFullName);
             i.putExtra("userEmail", userEmail);
             i.putExtra("userPhone", userPhone);
-            //i.putExtra("modeType", "master");
+            i.putExtra("modeType", "master");
             startActivity(i);
         });
 
