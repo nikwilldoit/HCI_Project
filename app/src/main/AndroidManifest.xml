@@ -49,6 +49,10 @@
         <activity android:name=".ui.Profile_Menu.EditUserInfoActivity" />
         <activity android:name=".data.model.FaceGuideOverlay" />
 
+        <activity android:name=".ui.Forum.ForumActivity" />
+
+        <activity android:name=".ui.Forum.NewReviewActivity" />
+
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="face" />
