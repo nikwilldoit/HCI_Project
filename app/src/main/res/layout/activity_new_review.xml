@@ -37,19 +37,20 @@
         <LinearLayout
             android:id="@+id/contentLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="493dp"
+            android:layout_below="@id/btnBack"
+            android:layout_marginTop="5dp"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_below="@id/btnBack">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/txtNewReviewTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="New review"
+                android:textColor="@android:color/white"
                 android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white" />
+                android:textStyle="bold" />
 
             <Spinner
                 android:id="@+id/spnType"
@@ -58,21 +59,21 @@
                 android:layout_marginTop="16dp" />
 
             <EditText
-                android:id="@+id/edtUniversity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="University"
-                android:background="@android:color/white"
-                android:padding="8dp" />
-
-            <EditText
                 android:id="@+id/edtCountry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:hint="Country"
                 android:background="@android:color/white"
+                android:hint="Country"
+                android:padding="8dp" />
+
+            <EditText
+                android:id="@+id/edtUniversity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@android:color/white"
+                android:hint="University"
                 android:padding="8dp" />
 
             <RatingBar
@@ -89,11 +90,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_marginTop="12dp"
-                android:hint="Write your experience..."
-                android:gravity="top"
                 android:background="@android:color/white"
-                android:padding="8dp"
-                android:inputType="textMultiLine" />
+                android:gravity="top"
+                android:hint="Write your experience..."
+                android:inputType="textMultiLine"
+                android:padding="8dp" />
 
             <Button
                 android:id="@+id/btnSave"

@@ -10,6 +10,9 @@ public class ForumReview {
     public String text;
     public float rating; //1-5
     public long timestamp;
+    public int likes = 0;
+
+
 
     public ForumReview() {}
 
