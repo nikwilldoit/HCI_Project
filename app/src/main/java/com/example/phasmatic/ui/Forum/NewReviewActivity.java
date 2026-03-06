@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -14,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ForumReview;
+import com.example.phasmatic.ui.BackButtonHelper;
+import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -26,9 +30,13 @@ public class NewReviewActivity extends AppCompatActivity {
     private EditText edtUniversity, edtCountry, edtText;
     private RatingBar ratingBar;
     private Button btnSave;
+    private ImageButton btnBack;
 
-    private String userId, userFullName;
+    private ImageView imgProfile;
+
+    private String userId, userFullName, userEmail, userPhone;
     private DatabaseReference forumRef;
+    private ProfileMenuHelper profileMenuHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,6 +46,8 @@ public class NewReviewActivity extends AppCompatActivity {
         Intent intent = getIntent();
         userId = intent.getStringExtra("userId");
         userFullName = intent.getStringExtra("userFullName");
+        userEmail = intent.getStringExtra("userEmail");
+        userPhone = intent.getStringExtra("userPhone");
 
         spnType = findViewById(R.id.spnType);
         edtUniversity = findViewById(R.id.edtUniversity);
@@ -45,6 +55,24 @@ public class NewReviewActivity extends AppCompatActivity {
         edtText = findViewById(R.id.edtText);
         ratingBar = findViewById(R.id.ratingBar);
         btnSave = findViewById(R.id.btnSave);
+        btnBack = findViewById(R.id.btnBack);
+
+        imgProfile = findViewById(R.id.imgProfile);
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
+
+        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+
+        BackButtonHelper.attach(
+                this,
+                R.id.btnBack
+        );
 
         List<String> types = Arrays.asList("Erasmus", "Master");
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(

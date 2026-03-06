@@ -2,6 +2,8 @@ package com.example.phasmatic.ui.Forum;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ForumReview;
+import com.example.phasmatic.ui.BackButtonHelper;
+import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,10 +26,16 @@ public class ForumActivity extends AppCompatActivity {
 
     private RecyclerView rvReviews;
     private ForumAdapter adapter;
+
+    private ImageButton btnBack;
+
+    private ImageView imgProfile;
     private final List<ForumReview> reviews = new ArrayList<>();
     private DatabaseReference forumRef;
 
     private String userId, userFullName, userEmail, userPhone;
+
+    private ProfileMenuHelper profileMenuHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +47,29 @@ public class ForumActivity extends AppCompatActivity {
         userFullName = intent.getStringExtra("userFullName");
         userEmail = intent.getStringExtra("userEmail");
         userPhone = intent.getStringExtra("userPhone");
+
+        imgProfile = findViewById(R.id.imgProfile);
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
+
+        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+
+        //btnBack = findViewById(R.id.btnBack);
+
+        BackButtonHelper.attachToGoModeSelection(
+                this,
+                R.id.btnBack,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
 
         rvReviews = findViewById(R.id.rvReviews);
         rvReviews.setLayoutManager(new LinearLayoutManager(this));

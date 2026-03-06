@@ -2,22 +2,21 @@ package com.example.phasmatic.data.model;
 
 public class ForumReview {
     public String id;
-    public String userId;
-    public String userName;
-    public String type;      //erasmus,master
+    public String user_id;
+    public String user_name;
+    public String type; //erasmus,master
     public String university;
     public String country;
     public String text;
-    public float rating;     //1-5
+    public float rating; //1-5
     public long timestamp;
 
-    public ForumReview() {
-    }
+    public ForumReview() {}
 
-    public ForumReview(String id, String userId, String userName, String type, String university, String country, String text, float rating, long timestamp) {
+    public ForumReview(String id, String user_id, String user_name, String type, String university, String country, String text, float rating, long timestamp) {
         this.id = id;
-        this.userId = userId;
-        this.userName = userName;
+        this.user_id = user_id;
+        this.user_name = user_name;
         this.type = type;
         this.university = university;
         this.country = country;
@@ -34,20 +33,20 @@ public class ForumReview {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUser_id() {
+        return user_id;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUser_name() {
+        return user_name;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUser_name(String user_name) {
+        this.user_name = user_name;
     }
 
     public String getType() {
@@ -98,3 +97,4 @@ public class ForumReview {
         this.timestamp = timestamp;
     }
 }
+

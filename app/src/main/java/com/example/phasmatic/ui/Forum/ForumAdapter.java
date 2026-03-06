@@ -34,13 +34,12 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         return new ForumVH(v);
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ForumVH h, int pos) {
         ForumReview r = items.get(pos);
         String title = (r.type.equals("erasmus") ? "Erasmus · " : "Master · ") + r.university;
         h.txtTitle.setText(title);
-        h.txtUser.setText("by " + r.userName);
+        h.txtUser.setText("by " + r.user_name);
         h.ratingBar.setRating(r.rating);
         h.txtText.setText(r.text);
     }
