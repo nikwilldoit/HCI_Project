@@ -29,6 +29,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
     private final DatabaseReference forumRef;
     private final DatabaseReference reviewLikesRef;
     private final String userId;
+    //private final String reviewId;
 
     public ForumAdapter(List<ForumReview> items,
                         String userId,
@@ -75,10 +76,13 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         h.txtText.setText(r.text != null ? r.text : "");
         h.txtLikes.setText(String.valueOf(r.likes));
 
+
         if (r.id != null && userId != null) {
             reviewLikesRef.child(r.id).child(userId).get()
                     .addOnSuccessListener(snap -> {
                         boolean liked = Boolean.TRUE.equals(snap.getValue(Boolean.class));
+                        reviewLikesRef.child("user_id").setValue(userId);
+                        reviewLikesRef.child("review_id").setValue(r.);
                         h.btnLike.setTag(liked);
                         h.btnLike.setImageResource(
                                 liked ? R.drawable.heartfull : R.drawable.heartempty

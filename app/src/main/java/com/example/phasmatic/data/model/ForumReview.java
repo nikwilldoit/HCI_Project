@@ -10,7 +10,7 @@ public class ForumReview {
     public String text;
     public float rating; //1-5
     public int likes = 0;
-    public long timestamp;
+    public String timestamp;
 
 
 
@@ -25,7 +25,7 @@ public class ForumReview {
                        String text,
                        float rating,
                        long likes,
-                       long timestamp) {
+                       String timestamp) {
 
         this.id = id;
         this.user_id = user_id;
@@ -111,11 +111,11 @@ public class ForumReview {
         this.rating = rating;
     }
 
-    public long getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 }
