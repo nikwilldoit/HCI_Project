@@ -194,6 +194,9 @@ public class NewReviewActivity extends AppCompatActivity {
             return;
         }
 
+        long likes = 0L;
+        long timestamp = System.currentTimeMillis();
+
         ForumReview review = new ForumReview(
                 id,
                 userId,
@@ -203,7 +206,8 @@ public class NewReviewActivity extends AppCompatActivity {
                 country,
                 text,
                 rating,
-                System.currentTimeMillis()
+                timestamp,
+                likes
         );
 
         forumRef.child(id)
@@ -216,4 +220,5 @@ public class NewReviewActivity extends AppCompatActivity {
                         Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
     }
+
 }

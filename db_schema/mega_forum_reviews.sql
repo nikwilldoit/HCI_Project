@@ -31,6 +31,7 @@ CREATE TABLE `forum_reviews` (
   `country` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `rating` decimal(2,1) NOT NULL,
+  `likes` int unsigned NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
@@ -46,7 +47,7 @@ CREATE TABLE `forum_reviews` (
 
 LOCK TABLES `forum_reviews` WRITE;
 /*!40000 ALTER TABLE `forum_reviews` DISABLE KEYS */;
-INSERT INTO `forum_reviews` VALUES (1,1,'Nikos','erasmus','TU Delft','Netherlands','Polu Duskolo.',4.0,'2026-03-05 22:44:15'),(2,2,'Mike','master','AUEB','Greece','Polu Duskolo.',5.0,'2026-03-05 22:44:15'),(3,2,'Prodromos','erasmus','TU Eindhoven','Holland','Xanw ta lefta mou se tajidia.',5.0,'2026-03-05 22:51:23');
+INSERT INTO `forum_reviews` VALUES (1,1,'Nikos','erasmus','Athens University of Economics and Business - Dept. of Informatics','Netherlands','Polu Duskolo.',4.0,0,'2026-03-06 19:30:23'),(2,2,'Mike','master','Athens University of Economics and Business - Dept. of Informatics','Greece','Polu Duskolo.',5.0,0,'2026-03-06 19:30:23'),(3,2,'Prodromos','erasmus','TU Delft - Computer Science','Netherlands','Xanw ta lefta mou se tajidia.',5.0,0,'2026-03-06 19:30:23');
 /*!40000 ALTER TABLE `forum_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -59,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-06  2:36:30
+-- Dump completed on 2026-03-06 21:31:47
