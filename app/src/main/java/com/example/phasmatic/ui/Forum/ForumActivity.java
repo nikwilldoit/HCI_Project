@@ -93,6 +93,9 @@ public class ForumActivity extends AppCompatActivity {
             i.putExtra("rating", review.rating);
             i.putExtra("text", review.text);
             i.putExtra("likes", review.likes);
+
+            i.putExtra("reviewId", review.id);
+
             startActivity(i);
         });
         rvReviews.setAdapter(adapter);

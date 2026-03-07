@@ -12,11 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ForumReview;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
@@ -34,6 +36,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
     public ForumAdapter(List<ForumReview> items,
                         String userId,
                         OnReviewClickListener listener) {
+
         this.items = items;
         this.listener = listener;
         this.userId = userId;
@@ -41,6 +44,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         FirebaseDatabase db = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
+
         forumRef = db.getReference("forum_reviews");
         reviewLikesRef = db.getReference("review_likes");
     }
@@ -55,9 +59,11 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
     @Override
     public void onBindViewHolder(@NonNull ForumVH h, int pos) {
+
         ForumReview r = items.get(pos);
 
         String title;
+
         if (r.type != null) {
             if ("erasmus".equalsIgnoreCase(r.type)) {
                 title = "Erasmus · " + r.university;
@@ -69,83 +75,76 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         } else {
             title = r.university;
         }
-        h.txtTitle.setText(title != null ? title : "");
 
+        h.txtTitle.setText(title != null ? title : "");
         h.txtUser.setText(r.user_name != null ? "by " + r.user_name : "");
         h.ratingBar.setRating(r.rating);
         h.txtText.setText(r.text != null ? r.text : "");
         h.txtLikes.setText(String.valueOf(r.likes));
 
-        h.btnLike.setTag(false);
-        h.btnLike.setImageResource(R.drawable.heartempty);
+        if (r.id == null || userId == null) return;
 
-        if (r.id != null && userId != null) {
-            reviewLikesRef.orderByChild("review_id")
-                    .equalTo(r.id)
-                    .get()
-                    .addOnSuccessListener(snap -> {
-                        boolean liked = false;
-                        for (DataSnapshot child : snap.getChildren()) {
-                            String uid = child.child("user_id").getValue(String.class);
-                            if (userId.equals(uid)) {
-                                liked = true;
-                                break;
-                            }
-                        }
-                        h.btnLike.setTag(liked);
-                        h.btnLike.setImageResource(
-                                liked ? R.drawable.heartfull : R.drawable.heartempty
-                        );
-                    });
-        }
+        String likeKey = r.id + "_" + userId;
+        DatabaseReference likeRef = reviewLikesRef.child(likeKey);
+
+        h.btnLike.setEnabled(false);
+        h.btnLike.setImageResource(R.drawable.heartempty);
+        h.btnLike.setTag(false);
+
+        likeRef.get().addOnSuccessListener(snap -> {
+
+            boolean liked = snap.exists();
+
+            h.btnLike.setTag(liked);
+            h.btnLike.setImageResource(
+                    liked ? R.drawable.heartfull : R.drawable.heartempty
+            );
+
+            h.btnLike.setEnabled(true);
+        });
 
         h.btnLike.setOnClickListener(v -> {
-            if (r.id == null || userId == null) return;
+
+            v.setEnabled(false);
 
             Boolean tag = (Boolean) v.getTag();
             boolean liked = tag != null && tag;
 
             if (liked) {
-                //no like
+
                 v.setTag(false);
                 h.btnLike.setImageResource(R.drawable.heartempty);
+
                 r.likes = Math.max(0, r.likes - 1);
                 h.txtLikes.setText(String.valueOf(r.likes));
 
-                forumRef.child(r.id).child("likes").setValue(r.likes);
+                forumRef.child(String.valueOf(r.id))
+                        .child("likes")
+                        .setValue(r.likes);
 
-                reviewLikesRef.orderByChild("review_id")
-                        .equalTo(r.id)
-                        .get()
-                        .addOnSuccessListener(snap -> {
-                            for (DataSnapshot child : snap.getChildren()) {
-                                String uid = child.child("user_id").getValue(String.class);
-                                if (userId.equals(uid)) {
-                                    child.getRef().removeValue();
-                                }
-                            }
-                        });
+                likeRef.removeValue().addOnCompleteListener(task -> v.setEnabled(true));
 
             } else {
-                //like
+
                 v.setTag(true);
                 h.btnLike.setImageResource(R.drawable.heartfull);
+
                 r.likes++;
                 h.txtLikes.setText(String.valueOf(r.likes));
 
-                forumRef.child(r.id).child("likes").setValue(r.likes);
+                forumRef.child(String.valueOf(r.id))
+                        .child("likes")
+                        .setValue(r.likes);
 
-                String key = reviewLikesRef.push().getKey();
-                if (key != null) {
-                    String likedAt = new java.text.SimpleDateFormat(
-                            "yyyy-MM-dd HH:mm:ss",
-                            java.util.Locale.getDefault()
-                    ).format(new java.util.Date());
+                String likedAt = new SimpleDateFormat(
+                        "yyyy-MM-dd HH:mm:ss",
+                        Locale.getDefault()
+                ).format(new Date());
 
-                    reviewLikesRef.child(key).child("review_id").setValue(r.id);
-                    reviewLikesRef.child(key).child("user_id").setValue(userId);
-                    reviewLikesRef.child(key).child("liked_at").setValue(likedAt);
-                }
+                likeRef.child("review_id").setValue(r.id);
+                likeRef.child("user_id").setValue(userId);
+                likeRef.child("liked_at").setValue(likedAt)
+                        .addOnCompleteListener(task -> v.setEnabled(true));
             }
         });
 
@@ -167,6 +166,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
         ForumVH(@NonNull View v) {
             super(v);
+
             txtTitle = v.findViewById(R.id.txtTitle);
             txtUser = v.findViewById(R.id.txtUser);
             txtText = v.findViewById(R.id.txtText);

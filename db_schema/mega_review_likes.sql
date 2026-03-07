@@ -23,14 +23,16 @@ DROP TABLE IF EXISTS `review_likes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `review_likes` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `review_id` bigint unsigned NOT NULL,
   `user_id` bigint unsigned NOT NULL,
   `liked_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`review_id`,`user_id`),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_review_user` (`review_id`,`user_id`),
   KEY `fk_review_likes_user` (`user_id`),
   CONSTRAINT `fk_review_likes_review` FOREIGN KEY (`review_id`) REFERENCES `forum_reviews` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_review_likes_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,6 +41,7 @@ CREATE TABLE `review_likes` (
 
 LOCK TABLES `review_likes` WRITE;
 /*!40000 ALTER TABLE `review_likes` DISABLE KEYS */;
+INSERT INTO `review_likes` VALUES (1,1,1,'2026-03-06 21:49:48');
 /*!40000 ALTER TABLE `review_likes` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-06 23:46:38
+-- Dump completed on 2026-03-07  1:25:54
