@@ -175,19 +175,24 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp"
+        android:background="#06152A">
 
         <EditText
             android:id="@+id/edtComment"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:hint="Write a comment..."
             android:background="@drawable/edittext_background"
-            android:padding="8dp"
-            android:textColor="#222222"
-            android:textColorHint="#888888"
-            android:maxLines="3" />
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:singleLine="true" />
 
         <ImageButton
             android:id="@+id/btnSendComment"
@@ -195,7 +200,8 @@
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/baseline_send_24" />
+            android:src="@drawable/ic_send"
+            app:tint="@android:color/white" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -11,6 +11,7 @@ public class ForumReview {
     public float rating; //1-5
     public int likes = 0;
     public String timestamp;
+    public int comments=0;
 
 
 

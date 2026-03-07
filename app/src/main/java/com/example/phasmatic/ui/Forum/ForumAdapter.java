@@ -81,6 +81,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         h.ratingBar.setRating(r.rating);
         h.txtText.setText(r.text != null ? r.text : "");
         h.txtLikes.setText(String.valueOf(r.likes));
+        h.txtComments.setText(String.valueOf(r.comments));
 
         if (r.id == null || userId == null) return;
 
@@ -160,7 +161,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
     static class ForumVH extends RecyclerView.ViewHolder {
 
-        TextView txtTitle, txtUser, txtText, txtLikes;
+        TextView txtTitle, txtUser, txtText, txtLikes, txtComments;
         RatingBar ratingBar;
         ImageButton btnLike;
 
@@ -173,6 +174,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
             ratingBar = v.findViewById(R.id.ratingBar);
             btnLike = v.findViewById(R.id.btnLike);
             txtLikes = v.findViewById(R.id.txtLikes);
+            txtComments = v.findViewById(R.id.txtComments);
         }
     }
 }

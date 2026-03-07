@@ -1,5 +1,6 @@
 package com.example.phasmatic.ui.Forum;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -14,8 +15,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ReviewComment;
+import com.example.phasmatic.data.model.User;
+import com.example.phasmatic.data.model.UserInfo;
 import com.example.phasmatic.ui.BackButtonHelper;
+import com.example.phasmatic.ui.Profile_Menu.AccountActivity;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
+import com.example.phasmatic.ui.Profile_Menu.PublicProfileActivity;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,8 +30,11 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+
 import java.util.Locale;
+import java.util.Map;
 
 public class ReviewDetailActivity extends AppCompatActivity {
 
@@ -41,12 +49,21 @@ public class ReviewDetailActivity extends AppCompatActivity {
     EditText edtComment;
 
     String userId, userFullName, userEmail, userPhone;
-    long reviewId;
+    String reviewId;
 
     CommentsAdapter commentsAdapter;
     List<ReviewComment> comments = new ArrayList<>();
 
     private DatabaseReference reviewCommentsRef;
+    private DatabaseReference usersRef;
+    private DatabaseReference userInfoRef;
+
+    private final Map<String, String> userNameMap = new HashMap<>();
+    private final Map<String, String> userAcademicMap = new HashMap<>();
+
+    int commentsCount = 0;
+    private DatabaseReference forumRef;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,12 +89,12 @@ public class ReviewDetailActivity extends AppCompatActivity {
         float rating = getIntent().getFloatExtra("rating", 0f);
         String text = getIntent().getStringExtra("text");
         int likes = getIntent().getIntExtra("likes", 0);
-        reviewId = getIntent().getLongExtra("reviewId", -1);
 
         userId = getIntent().getStringExtra("userId");
         userFullName = getIntent().getStringExtra("userFullName");
         userEmail = getIntent().getStringExtra("userEmail");
         userPhone = getIntent().getStringExtra("userPhone");
+        reviewId = getIntent().getStringExtra("reviewId");
 
         String title = ("erasmus".equals(type) ? "Erasmus · " : "Master · ") + university;
         txtTitle.setText(title);
@@ -109,24 +126,85 @@ public class ReviewDetailActivity extends AppCompatActivity {
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
         reviewCommentsRef = db.getReference("review_comments");
+        usersRef = db.getReference("users");
+        userInfoRef = db.getReference("user_info");
+
+        forumRef = db.getReference("forum_reviews");
+        commentsCount = getIntent().getIntExtra("comments", 0);
+
 
         rvComments.setLayoutManager(new LinearLayoutManager(this));
-        commentsAdapter = new CommentsAdapter(comments);
+        commentsAdapter = new CommentsAdapter(
+                comments,
+                userNameMap,
+                userAcademicMap,
+                comment -> {
+                    Intent i = new Intent(ReviewDetailActivity.this, PublicProfileActivity.class);
+                    i.putExtra("userId", comment.user_id);
+                    startActivity(i);
+                }
+        );
         rvComments.setAdapter(commentsAdapter);
 
-        loadComments();
+        loadAllUsersAndInfoThenComments();
 
         btnSendComment.setOnClickListener(v -> {
             String cText = edtComment.getText().toString().trim();
-            if (cText.isEmpty()) {
-                return;
-            }
+            if (cText.isEmpty()) return;
             postComment(cText);
         });
     }
 
+    private void loadAllUsersAndInfoThenComments() {
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot userSnap) {
+                userNameMap.clear();
+                for (DataSnapshot child : userSnap.getChildren()) {
+                    User u = child.getValue(User.class);
+                    if (u != null) {
+                        userNameMap.put(child.getKey(), u.getFullName());
+                    }
+                }
+
+                userInfoRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot infoSnap) {
+                        userAcademicMap.clear();
+                        for (DataSnapshot child : infoSnap.getChildren()) {
+                            UserInfo ui = child.getValue(UserInfo.class);
+                            if (ui != null) {
+                                String uid = ui.getUserId();
+                                if (uid == null) uid = child.getKey();
+
+                                String uni = ui.getUniversity() != null ? ui.getUniversity() : "-";
+                                String level = ui.getAcademicLevel() != null ? ui.getAcademicLevel() : "";
+                                String field = ui.getField() != null ? ui.getField() : "";
+
+                                String academic = "";
+                                if (!field.isEmpty()) academic = field + " · " + uni;
+                                else academic = uni;
+                                if (!level.isEmpty()) academic = level + " · " + academic;
+
+                                userAcademicMap.put(uid, academic);
+                            }
+                        }
+
+                        loadComments();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) { }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) { }
+        });
+    }
+
     private void loadComments() {
-        if (reviewId <= 0) return;
+        if (reviewId == null || reviewId.isEmpty()) return;
 
         reviewCommentsRef
                 .orderByChild("review_id")
@@ -142,17 +220,24 @@ public class ReviewDetailActivity extends AppCompatActivity {
                                 comments.add(c);
                             }
                         }
+
+                        commentsCount = comments.size();
+                        if (reviewId != null) {
+                            forumRef.child(reviewId).child("comments")
+                                    .setValue(commentsCount);
+                        }
+
                         commentsAdapter.notifyDataSetChanged();
                     }
 
                     @Override
-                    public void onCancelled(DatabaseError error) {
-                    }
+                    public void onCancelled(DatabaseError error) { }
                 });
     }
 
+
     private void postComment(String commentText) {
-        if (reviewId <= 0) return;
+        if (reviewId == null || reviewId.isEmpty()) return;
 
         btnSendComment.setEnabled(false);
 
@@ -168,14 +253,14 @@ public class ReviewDetailActivity extends AppCompatActivity {
                 Locale.getDefault()
         ).format(new Date());
 
-        ReviewComment c = new ReviewComment(
-                key,
-                reviewId,
-                userId,
-                userFullName,
-                commentText,
-                createdAt
-        );
+        ReviewComment c = new ReviewComment();
+        c.id = key;
+        c.review_id = reviewId;
+        c.user_id = userId;
+        c.user_name = userFullName;
+        c.academic_profile = userAcademicMap.get(userId);
+        c.comment_text = commentText;
+        c.created_at = createdAt;
 
         reviewCommentsRef.child(key).setValue(c)
                 .addOnCompleteListener(task -> {
@@ -185,12 +270,11 @@ public class ReviewDetailActivity extends AppCompatActivity {
                         return;
                     }
 
-                    comments.add(c);
-                    commentsAdapter.notifyItemInserted(comments.size() - 1);
-                    rvComments.scrollToPosition(comments.size() - 1);
                     edtComment.setText("");
+                    rvComments.scrollToPosition(Math.max(0, comments.size() - 1));
 
                     Toast.makeText(this, "Comment added", Toast.LENGTH_SHORT).show();
                 });
     }
+
 }

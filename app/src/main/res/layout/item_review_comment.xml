@@ -2,26 +2,53 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingTop="4dp"
-    android:paddingBottom="4dp">
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
 
-    <TextView
-        android:id="@+id/txtCommentUser"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="User Name"
-        android:textStyle="bold"
-        android:textSize="13sp"
-        android:textColor="#444444" />
+    <ImageView
+        android:id="@+id/imgCommentUser"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/profile_circle_bg"
+        android:padding="4dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/baseline_face_24" />
 
-    <TextView
-        android:id="@+id/txtCommentText"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Comment text..."
-        android:textSize="13sp"
-        android:textColor="#222222"
-        android:layout_marginTop="2dp" />
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtCommentUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="User Name"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/txtCommentAcademic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="University"
+            android:textSize="12sp"
+            android:textColor="#BBBBBB" />
+
+        <TextView
+            android:id="@+id/txtCommentText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Comment text..."
+            android:textSize="13sp"
+            android:textColor="#DDDDDD"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
 
 </LinearLayout>
