@@ -55,6 +55,9 @@
 
         <activity android:name=".ui.Forum.ReviewDetailActivity" />
 
+        <activity android:name=".ui.Profile_Menu.PublicProfileActivity" />
+
+
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="face" />
