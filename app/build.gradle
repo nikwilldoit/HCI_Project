@@ -73,4 +73,18 @@ dependencies {
     androidTestImplementation libs.espresso.core
 
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // google drive
+    implementation 'com.google.android.gma:play-services-auth:16.0.1'
+
+    implementation ('com.google.apis:google-api-services-drive:v3-rev136-1.25.0')
+            {
+                exclude group: 'org.apache.httpcomponents'
+            }
+    implementation ('com.google.api-client:google-api-client-android:1.26.0')
+            {
+                exclude group: 'org.apache.httpcomponent'
+            }
+
+    implementation 'com.google.http-client:google-http-client-gson:1.26.0'
 }
