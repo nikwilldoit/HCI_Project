@@ -46,7 +46,6 @@ public class LoginActivity extends AppCompatActivity {
     Button btnLoginLog, btnRegisterLog, btnFaceLogin;
     TextView txtDisplayInfoLog;
 
-    PreviewView viewFinder;
     Button captureButton;
     android.view.View cameraLayout, loginLayout;
 
@@ -54,6 +53,8 @@ public class LoginActivity extends AppCompatActivity {
     DatabaseReference usersFaceRef;
     DatabaseReference userInfoRef;
 
+    PreviewView viewFinder;
+    
     private ImageCapture imageCapture;
     private Interpreter tflite;
 
