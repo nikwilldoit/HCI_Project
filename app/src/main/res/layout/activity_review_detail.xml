@@ -145,4 +145,57 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <TextView
+        android:id="@+id/txtCommentsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cardDetail"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Comments"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:textColor="@android:color/white" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvComments"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/txtCommentsLabel"
+        android:layout_above="@id/layoutAddComment"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:overScrollMode="never" />
+
+    <LinearLayout
+        android:id="@+id/layoutAddComment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/edtComment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Write a comment..."
+            android:background="@drawable/edittext_background"
+            android:padding="8dp"
+            android:textColor="#222222"
+            android:textColorHint="#888888"
+            android:maxLines="3" />
+
+        <ImageButton
+            android:id="@+id/btnSendComment"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/baseline_send_24" />
+    </LinearLayout>
+
 </RelativeLayout>
