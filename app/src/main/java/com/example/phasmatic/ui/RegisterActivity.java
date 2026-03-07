@@ -62,6 +62,11 @@ public class RegisterActivity extends AppCompatActivity {
 
     private PreviewView viewFinder;
     private FrameLayout cameraLayout;
+    private long lastCaptureTime = 0;
+
+    private int framesCapturedForAction = 0;
+    private static final int FRAMES_PER_ACTION = 3;
+
     private android.view.View registerLayout;
     private FaceGuideOverlay faceGuideOverlay;
 
@@ -281,6 +286,13 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void processFrame(Bitmap bitmap, Face face) {
 
+        long now = System.currentTimeMillis();
+
+        if(now - lastCaptureTime < 500)
+            return;
+
+        lastCaptureTime = now;
+
         Rect bounds = face.getBoundingBox();
 
         int left = Math.max(bounds.left, 0);
@@ -295,7 +307,14 @@ public class RegisterActivity extends AppCompatActivity {
 
         processWithAugmentation(faceBitmap);
 
-        showToast("Photo captured");
+        framesCapturedForAction++;
+
+        showToast("Photo " + framesCapturedForAction + "/" + FRAMES_PER_ACTION);
+
+        if(framesCapturedForAction >= FRAMES_PER_ACTION){
+            framesCapturedForAction = 0;
+            currentAction = getNextAction(currentAction);
+        }
     }
     private void showToast(String msg) {
 
@@ -320,8 +339,6 @@ public class RegisterActivity extends AppCompatActivity {
                 showToast("Look straight");
 
                 if (Math.abs(yaw) < 10 && Math.abs(pitch) < 10) {
-                    showToast("Turn your head left");
-                    currentAction = FaceAction.LOOK_LEFT;
                     return true;
                 }
                 break;
@@ -331,8 +348,6 @@ public class RegisterActivity extends AppCompatActivity {
                 faceGuideOverlay.setAction(FaceAction.LOOK_LEFT);
 
                 if (yaw > 20) {
-                    showToast("Turn your head right");
-                    currentAction = FaceAction.LOOK_RIGHT;
                     return true;
                 }
                 break;
@@ -342,8 +357,6 @@ public class RegisterActivity extends AppCompatActivity {
                 faceGuideOverlay.setAction(FaceAction.LOOK_RIGHT);
 
                 if (yaw < -20) {
-                    showToast("Look up");
-                    currentAction = FaceAction.LOOK_UP;
                     return true;
                 }
                 break;
@@ -353,8 +366,6 @@ public class RegisterActivity extends AppCompatActivity {
                 faceGuideOverlay.setAction(FaceAction.LOOK_UP);
 
                 if (pitch < -15) {
-                    showToast("Look down");
-                    currentAction = FaceAction.LOOK_DOWN;
                     return true;
                 }
                 break;
@@ -364,8 +375,6 @@ public class RegisterActivity extends AppCompatActivity {
                 faceGuideOverlay.setAction(FaceAction.LOOK_DOWN);
 
                 if (pitch > 15) {
-                    showToast("Blink your eyes");
-                    currentAction = FaceAction.BLINK;
                     return true;
                 }
                 break;
@@ -387,6 +396,38 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         return false;
+    }
+
+    private FaceAction getNextAction(FaceAction action){
+
+        switch (action){
+
+            case CENTER:
+                showToast("Turn your head left");
+                return FaceAction.LOOK_LEFT;
+
+            case LOOK_LEFT:
+                showToast("Turn your head right");
+                return FaceAction.LOOK_RIGHT;
+
+            case LOOK_RIGHT:
+                showToast("Look up");
+                return FaceAction.LOOK_UP;
+
+            case LOOK_UP:
+                showToast("Look down");
+                return FaceAction.LOOK_DOWN;
+
+            case LOOK_DOWN:
+                showToast("Blink your eyes");
+                return FaceAction.BLINK;
+
+            case BLINK:
+                return FaceAction.DONE;
+
+            default:
+                return FaceAction.DONE;
+        }
     }
 
     private void processWithAugmentation(Bitmap faceBitmap) {
