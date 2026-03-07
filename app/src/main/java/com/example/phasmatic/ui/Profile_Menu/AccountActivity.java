@@ -206,13 +206,6 @@ public class AccountActivity extends AppCompatActivity {
             txtFullName.setText(userFullName != null ? userFullName : "-");
             txtEmail.setText(userEmail != null ? userEmail : "-");
             txtPhone.setText(userPhone != null ? userPhone : "-");
-//            String photoUrl = snapshot.child("profileImageUrl").getValue(String.class);
-
-//            if(photoUrl != null){
-//                Glide.with(this)
-//                        .load(photoUrl)
-//                        .into(imgProfilePhoto);
-//            }
         });
     }
 
