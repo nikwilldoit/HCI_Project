@@ -10,13 +10,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
@@ -45,79 +43,79 @@ import java.util.Locale;
 public class LoginActivity extends AppCompatActivity {
 
     EditText edtEmailAddressLog, edtPasswordLog;
-    Button btnRegisterLog, btnLoginLog, btnFaceLogin;
+    Button btnLoginLog, btnRegisterLog, btnFaceLogin;
     TextView txtDisplayInfoLog;
 
+    PreviewView viewFinder;
+    Button captureButton;
+    android.view.View cameraLayout, loginLayout;
+
     DatabaseReference usersRef;
-    DatabaseReference usersfaceembeddingRef;
+    DatabaseReference usersFaceRef;
     DatabaseReference userInfoRef;
 
     private ImageCapture imageCapture;
-    private Button captureButton;
-
-    private PreviewView viewFinder;
-    private android.view.View cameraLayout, loginLayout;
     private Interpreter tflite;
+
     private static final int CAMERA_PERMISSION_CODE = 100;
+
+    private String authenticatedUserId = null;
+    private User authenticatedUser = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        //UI
         edtEmailAddressLog = findViewById(R.id.edtEmailAddressLog);
-        edtPasswordLog     = findViewById(R.id.edtPasswordLog);
-        btnLoginLog        = findViewById(R.id.btnLoginLog);
-        btnRegisterLog     = findViewById(R.id.btnRegisterLog);
-        txtDisplayInfoLog  = findViewById(R.id.txtDisplayInfoLog);
-        btnFaceLogin       = findViewById(R.id.btnFaceLogin);
+        edtPasswordLog = findViewById(R.id.edtPasswordLog);
+        btnLoginLog = findViewById(R.id.btnLoginLog);
+        btnRegisterLog = findViewById(R.id.btnRegisterLog);
+        btnFaceLogin = findViewById(R.id.btnFaceLogin);
+        txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
 
-        viewFinder   = findViewById(R.id.viewFinder);
+        viewFinder = findViewById(R.id.viewFinder);
         cameraLayout = findViewById(R.id.cameraLayout);
-        loginLayout  = findViewById(R.id.loginLayout);
+        loginLayout = findViewById(R.id.loginLayout);
         captureButton = findViewById(R.id.image_capture_button);
 
-        //Firebase
+        btnFaceLogin.setEnabled(false);
+
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
+
         usersRef = firebaseDb.getReference("users");
-        usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
+        usersFaceRef = firebaseDb.getReference("users_face_embedding");
         userInfoRef = firebaseDb.getReference("user_info");
 
-        //Register
-        btnRegisterLog.setOnClickListener(v -> {
-            Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
-            startActivity(i);
-        });
+        loadFaceModel();
 
-        //Email/password login
+        btnRegisterLog.setOnClickListener(v ->
+                startActivity(new Intent(this, RegisterActivity.class)));
+
         btnLoginLog.setOnClickListener(v -> {
             String email = edtEmailAddressLog.getText().toString().trim();
             String password = edtPasswordLog.getText().toString().trim();
 
             if (email.isEmpty() || password.isEmpty()) {
-                txtDisplayInfoLog.setText("Please enter email and password");
+                txtDisplayInfoLog.setText("Enter email and password");
                 return;
             }
 
             loginWithFirebase(email, password);
         });
 
-        //Face Login
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
+    }
 
-        //Load TFLite model
+    private void loadFaceModel() {
         try {
             InputStream is = getAssets().open("facenet.tflite");
             byte[] model = new byte[is.available()];
-            int read = is.read(model);
+            is.read(model);
             is.close();
-
-            if (read <= 0) throw new RuntimeException("Model read failed");
 
             ByteBuffer buffer = ByteBuffer.allocateDirect(model.length)
                     .order(ByteOrder.nativeOrder());
@@ -125,44 +123,65 @@ public class LoginActivity extends AppCompatActivity {
             buffer.rewind();
 
             tflite = new Interpreter(buffer);
+
         } catch (Exception e) {
-            e.printStackTrace();
-            tflite = null;
-            Toast.makeText(this, "Failed to load face model", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"Model load failed",Toast.LENGTH_SHORT).show();
         }
     }
 
-    //CAMERA PERMISSION
+    private void loginWithFirebase(String email, String password) {
+
+        usersRef.orderByChild("email").equalTo(email)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+
+                        if (!snapshot.exists()) {
+                            txtDisplayInfoLog.setText("Incorrect credentials");
+                            return;
+                        }
+
+                        for (DataSnapshot child : snapshot.getChildren()) {
+
+                            User user = child.getValue(User.class);
+
+                            if (user != null && password.equals(user.getPassword())) {
+
+                                authenticatedUserId = user.getId();
+                                authenticatedUser = user;
+
+                                Toast.makeText(LoginActivity.this,
+                                        "Password OK. Scan your face.",
+                                        Toast.LENGTH_LONG).show();
+
+                                btnFaceLogin.setEnabled(true);
+                                return;
+                            }
+                        }
+
+                        txtDisplayInfoLog.setText("Incorrect credentials");
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        txtDisplayInfoLog.setText("Database error");
+                    }
+                });
+    }
+
     private void checkCameraPermission() {
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
-            ActivityCompat.requestPermissions(
-                    this,
+            ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA},
-                    CAMERA_PERMISSION_CODE
-            );
+                    CAMERA_PERMISSION_CODE);
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startCamera();
-            } else {
-                txtDisplayInfoLog.setText("Camera permission denied");
-            }
-        }
-    }
-
-    //START CAMERA
     private void startCamera() {
 
         cameraLayout.setVisibility(android.view.View.VISIBLE);
@@ -172,17 +191,17 @@ public class LoginActivity extends AppCompatActivity {
                 ProcessCameraProvider.getInstance(this);
 
         cameraProviderFuture.addListener(() -> {
+
             try {
-                ProcessCameraProvider cameraProvider =
-                        cameraProviderFuture.get();
+
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
 
                 imageCapture = new ImageCapture.Builder().build();
 
-                CameraSelector cameraSelector =
-                        CameraSelector.DEFAULT_FRONT_CAMERA;
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
 
                 cameraProvider.unbindAll();
 
@@ -196,367 +215,197 @@ public class LoginActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }, ContextCompat.getMainExecutor(this));
     }
 
     private void takePhoto() {
-        if (tflite == null) {
-            Toast.makeText(this, "Face model not available", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        if (imageCapture == null) {
-            Toast.makeText(this, "Camera not ready yet", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+        String timeStamp = new SimpleDateFormat(
+                "yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
                 .format(System.currentTimeMillis());
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timeStamp);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image");
-        }
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, timeStamp);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
 
-        ImageCapture.OutputFileOptions outputOptions =
+        ImageCapture.OutputFileOptions options =
                 new ImageCapture.OutputFileOptions.Builder(
                         getContentResolver(),
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        contentValues
+                        values
                 ).build();
 
         imageCapture.takePicture(
-                outputOptions,
+                options,
                 ContextCompat.getMainExecutor(this),
                 new ImageCapture.OnImageSavedCallback() {
+
                     @Override
-                    public void onError(@NonNull ImageCaptureException exc) {
-                        Log.e("CameraX", "Photo capture failed: " + exc.getMessage(), exc);
+                    public void onError(@NonNull ImageCaptureException exception) {
+                        Toast.makeText(LoginActivity.this,
+                                "Capture failed", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
-                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
-
-                        Toast.makeText(LoginActivity.this,
-                                "Face Captured!", Toast.LENGTH_SHORT).show();
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults result) {
 
                         try {
-                            Uri imageUri = output.getSavedUri();
-                            if (imageUri == null) {
-                                Toast.makeText(LoginActivity.this,
-                                        "Image URI is null", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
 
-                            BitmapFactory.Options options = new BitmapFactory.Options();
-                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                            Uri uri = result.getSavedUri();
 
-                            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
-                            if (inputStream != null) inputStream.close();
+                            InputStream stream = getContentResolver().openInputStream(uri);
+                            Bitmap bitmap = BitmapFactory.decodeStream(stream);
+                            stream.close();
 
-                            if (bitmap == null) {
-                                Toast.makeText(LoginActivity.this,
-                                        "Bitmap decode failed", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
+                            Bitmap resized = Bitmap.createScaledBitmap(bitmap,160,160,true);
 
-                            int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
-                            Bitmap cropped = Bitmap.createBitmap(
-                                    bitmap,
-                                    (bitmap.getWidth() - size) / 2,
-                                    (bitmap.getHeight() - size) / 2,
-                                    size,
-                                    size
-                            );
+                            float[] embedding = normalize(runModel(resized));
 
-                            Bitmap resized = Bitmap.createScaledBitmap(cropped, 160, 160, true);
-
-                            float[] inputEmbedding = normalize(runModel(resized));
-
-                            loginWithFace(inputEmbedding);
+                            loginWithFace(authenticatedUserId, embedding);
 
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Toast.makeText(LoginActivity.this,
-                                    "Processing error", Toast.LENGTH_SHORT).show();
                         }
 
                         cameraLayout.setVisibility(android.view.View.GONE);
                         loginLayout.setVisibility(android.view.View.VISIBLE);
                     }
-                }
-        );
+                });
+    }
+
+    private void loginWithFace(String userId, float[] inputEmbedding) {
+
+        usersFaceRef.orderByChild("userId").equalTo(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+
+                        float bestScore = -1f;
+
+                        for (DataSnapshot child : snapshot.getChildren()) {
+
+                            List<?> embeddings =
+                                    (List<?>) child.child("faceEmbeddings").getValue();
+
+                            if (embeddings == null) continue;
+
+                            for (Object obj : embeddings) {
+
+                                List<?> vector = (List<?>) obj;
+
+                                float[] stored = new float[128];
+
+                                for (int i = 0; i < 128; i++)
+                                    stored[i] = ((Number) vector.get(i)).floatValue();
+
+                                float sim = cosineSimilarity(inputEmbedding, stored);
+
+                                if (sim > bestScore)
+                                    bestScore = sim;
+                            }
+                        }
+
+                        if (bestScore > 0.50f) {
+
+                            Toast.makeText(LoginActivity.this,
+                                    "Face verified",
+                                    Toast.LENGTH_LONG).show();
+
+                            openNextActivity();
+
+                        } else {
+
+                            Toast.makeText(LoginActivity.this,
+                                    "Face mismatch",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) { }
+                });
+    }
+
+    private void openNextActivity() {
+
+        userInfoRef.child(authenticatedUserId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot snap) {
+
+                        Intent i;
+
+                        if (snap.exists())
+                            i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
+                        else
+                            i = new Intent(LoginActivity.this, UserInfoActivity.class);
+
+                        i.putExtra("userId", authenticatedUserId);
+                        i.putExtra("userFullName", authenticatedUser.getFullName());
+                        i.putExtra("userEmail", authenticatedUser.getEmail());
+                        i.putExtra("userPhone", authenticatedUser.getPhoneNumber());
+
+                        startActivity(i);
+                        finish();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) { }
+                });
     }
 
     private float[] runModel(Bitmap bitmap) {
 
-        ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
-        inputBuffer.order(ByteOrder.nativeOrder());
+        ByteBuffer buffer = ByteBuffer.allocateDirect(1*160*160*3*4);
+        buffer.order(ByteOrder.nativeOrder());
 
-        int[] pixels = new int[160 * 160];
-        bitmap.getPixels(pixels, 0, 160, 0, 0, 160, 160);
+        int[] pixels = new int[160*160];
+        bitmap.getPixels(pixels,0,160,0,0,160,160);
 
-        for (int pixel : pixels) {
-            float r = ((pixel >> 16) & 0xFF) / 255.0f;
-            float g = ((pixel >> 8) & 0xFF) / 255.0f;
-            float b = (pixel & 0xFF) / 255.0f;
+        for(int pixel:pixels){
 
-            inputBuffer.putFloat(r);
-            inputBuffer.putFloat(g);
-            inputBuffer.putFloat(b);
+            float r=((pixel>>16)&0xFF)/255f;
+            float g=((pixel>>8)&0xFF)/255f;
+            float b=(pixel&0xFF)/255f;
+
+            buffer.putFloat(r);
+            buffer.putFloat(g);
+            buffer.putFloat(b);
         }
 
-        float[][] output = new float[1][128];
-        tflite.run(inputBuffer, output);
+        float[][] output=new float[1][128];
+        tflite.run(buffer,output);
 
         return output[0];
     }
 
-    //EMAIL/PASSWORD LOGIN
-    private void loginWithFirebase(String email, String password) {
-        usersRef.orderByChild("email")
-                .equalTo(email)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            txtDisplayInfoLog.setText("Incorrect email or password");
-                            return;
-                        }
+    private float cosineSimilarity(float[] v1,float[] v2){
 
-                        User matchedUser = null;
+        float dot=0,n1=0,n2=0;
 
-                        for (DataSnapshot child : snapshot.getChildren()) {
-                            User user = child.getValue(User.class);
-                            if (user != null && password.equals(user.getPassword())) {
-                                matchedUser = user;
-                                break;
-                            }
-                        }
-
-                        if (matchedUser != null) {
-                            Toast.makeText(LoginActivity.this,
-                                    "Logged in as: " + matchedUser.getEmail(),
-                                    Toast.LENGTH_LONG).show();
-
-                            String uid = matchedUser.getId();
-                            User finalMatchedUser = matchedUser;
-
-                            userInfoRef.child(uid)
-                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot infoSnap) {
-                                            Intent i;
-                                            if (infoSnap.exists()) {
-                                                i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
-                                            } else {
-                                                i = new Intent(LoginActivity.this, UserInfoActivity.class);
-                                            }
-                                            i.putExtra("userId", uid);
-                                            i.putExtra("userFullName", finalMatchedUser.getFullName());
-                                            i.putExtra("userEmail", finalMatchedUser.getEmail());
-                                            i.putExtra("userPhone", finalMatchedUser.getPhoneNumber());
-                                            startActivity(i);
-                                            finish();
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError error) {
-                                            Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
-                                            i.putExtra("userId", uid);
-                                            i.putExtra("userFullName", finalMatchedUser.getFullName());
-                                            i.putExtra("userEmail", finalMatchedUser.getEmail());
-                                            i.putExtra("userPhone", finalMatchedUser.getPhoneNumber());
-                                            startActivity(i);
-                                            finish();
-                                        }
-                                    });
-
-                        } else {
-                            txtDisplayInfoLog.setText("Incorrect email or password");
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError error) {
-                        txtDisplayInfoLog.setText("Firebase error: " + error.getMessage());
-                    }
-                });
-    }
-
-
-    private void loginWithFace(float[] inputEmbedding) {
-
-        if (inputEmbedding == null) {
-            Toast.makeText(this, "Face model failed", Toast.LENGTH_SHORT).show();
-            return;
+        for(int i=0;i<v1.length;i++){
+            dot+=v1[i]*v2[i];
+            n1+=v1[i]*v1[i];
+            n2+=v2[i]*v2[i];
         }
 
-        usersfaceembeddingRef.get().addOnCompleteListener(task -> {
-
-            if (!task.isSuccessful() || task.getResult() == null) {
-                Toast.makeText(this, "Database error", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            float bestScore = -1f;
-            String bestUserId = null;
-
-            for (DataSnapshot snapshot : task.getResult().getChildren()) {
-
-                String userId = snapshot.child("userId").getValue(String.class);
-
-                Object embeddingsObj = snapshot.child("faceEmbeddings").getValue();
-
-                if (!(embeddingsObj instanceof List)) continue;
-
-                List<?> embeddingsList = (List<?>) embeddingsObj;
-
-                float[] avgEmbedding = new float[128];
-                int count = 0;
-
-                for (Object embObj : embeddingsList) {
-
-                    if (!(embObj instanceof List)) continue;
-
-                    List<?> rawVector = (List<?>) embObj;
-
-                    if (rawVector.size() != 128) continue;
-
-                    for (int i = 0; i < 128; i++) {
-                        avgEmbedding[i] += ((Number) rawVector.get(i)).floatValue();
-                    }
-
-                    count++;
-                }
-
-                if (count == 0) continue;
-
-                for (int i = 0; i < 128; i++) {
-                    avgEmbedding[i] /= count;
-                }
-
-                avgEmbedding = normalize(avgEmbedding);
-
-                float similarity = cosineSimilarity(inputEmbedding, avgEmbedding);
-
-                if (similarity > bestScore) {
-                    bestScore = similarity;
-                    bestUserId = userId;
-                }
-            }
-
-            float THRESHOLD = 0.75f;
-
-            if (bestScore > THRESHOLD && bestUserId != null) {
-
-                String finalBestUserId = bestUserId;
-
-                usersRef.child(bestUserId)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-
-                            @Override
-                            public void onDataChange(DataSnapshot userSnapshot) {
-
-                                if (!userSnapshot.exists()) {
-                                    Toast.makeText(LoginActivity.this,
-                                            "User not found",
-                                            Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-
-                                User user = userSnapshot.getValue(User.class);
-
-                                if (user == null) {
-                                    Toast.makeText(LoginActivity.this,
-                                            "User data error",
-                                            Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-
-                                Toast.makeText(LoginActivity.this,
-                                        "Face Login Success: " + user.getEmail(),
-                                        Toast.LENGTH_LONG).show();
-
-                                userInfoRef.child(finalBestUserId)
-                                        .addListenerForSingleValueEvent(new ValueEventListener() {
-
-                                            @Override
-                                            public void onDataChange(DataSnapshot infoSnap) {
-
-                                                Intent i;
-
-                                                if (infoSnap.exists()) {
-                                                    i = new Intent(LoginActivity.this, ModeSelectionActivity.class);
-                                                } else {
-                                                    i = new Intent(LoginActivity.this, UserInfoActivity.class);
-                                                }
-
-                                                i.putExtra("userId", finalBestUserId);
-                                                i.putExtra("userFullName", user.getFullName());
-                                                i.putExtra("userEmail", user.getEmail());
-                                                i.putExtra("userPhone", user.getPhoneNumber());
-
-                                                startActivity(i);
-                                                finish();
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError error) {
-
-                                                Intent i = new Intent(LoginActivity.this, UserInfoActivity.class);
-
-                                                i.putExtra("userId", finalBestUserId);
-                                                i.putExtra("userFullName", user.getFullName());
-                                                i.putExtra("userEmail", user.getEmail());
-                                                i.putExtra("userPhone", user.getPhoneNumber());
-
-                                                startActivity(i);
-                                                finish();
-                                            }
-                                        });
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError error) {
-                                Toast.makeText(LoginActivity.this,
-                                        "User fetch failed",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-            } else {
-
-                Toast.makeText(this,
-                        "No matching face found",
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+        return (float)(dot/(Math.sqrt(n1)*Math.sqrt(n2)));
     }
 
-    private float cosineSimilarity(float[] v1, float[] v2) {
-        float dot = 0f;
-        float norm1 = 0f;
-        float norm2 = 0f;
-        for (int i = 0; i < v1.length; i++) {
-            dot += v1[i] * v2[i];
-            norm1 += v1[i] * v1[i];
-            norm2 += v2[i] * v2[i];
-        }
-        float denom = (float) (Math.sqrt(norm1) * Math.sqrt(norm2));
-        if (denom == 0f) return -1f;
-        return dot / denom;
-    }
+    private float[] normalize(float[] emb){
 
-    private float[] normalize(float[] emb) {
-        float sum = 0f;
-        for (float v : emb) sum += v * v;
-        float norm = (float) Math.sqrt(sum);
-        if (norm == 0f) return emb;
-        for (int i = 0; i < emb.length; i++) emb[i] /= norm;
+        float sum=0;
+
+        for(float v:emb) sum+=v*v;
+
+        float norm=(float)Math.sqrt(sum);
+
+        for(int i=0;i<emb.length;i++)
+            emb[i]/=norm;
+
         return emb;
     }
 }
