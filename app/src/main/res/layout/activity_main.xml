@@ -85,14 +85,23 @@
             android:layout_height="24dp" />
 
         <Button
+            android:id="@+id/btnFaceLogin"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#FF2196F3"
+            android:text="Verify with your face"
+            android:textColor="@android:color/white" />
+
+        <Button
             android:id="@+id/btnLoginLog"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:backgroundTint="#FF4CAF50"
             android:text="Login"
             android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btnRegisterLog"
@@ -115,14 +124,6 @@
             android:textSize="13sp" />
 
         <!-- 🔥 Button για Face Login -->
-        <Button
-            android:id="@+id/btnFaceLogin"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:text="Login with Face ID"
-            android:backgroundTint="#FF2196F3"
-            android:textColor="@android:color/white"/>
 
     </LinearLayout>
 
