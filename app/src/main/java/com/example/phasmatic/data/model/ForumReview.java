@@ -12,6 +12,7 @@ public class ForumReview {
     public int likes = 0;
     public String timestamp;
     public int comments=0;
+    public int views;
 
 
 
@@ -26,7 +27,8 @@ public class ForumReview {
                        String text,
                        float rating,
                        long likes,
-                       String timestamp) {
+                       String timestamp,
+                       int views) {
 
         this.id = id;
         this.user_id = user_id;
@@ -38,8 +40,17 @@ public class ForumReview {
         this.rating = rating;
         this.likes = Math.toIntExact(likes);
         this.timestamp = timestamp;
+        this.views = views;
     }
-
+    public int getViews(){
+        return this.views;
+    }
+    public void setViews(int v){
+        this.views = v;
+    }
+    public void addView(){
+        this.views++;
+    }
     public int getLikes() {
         return likes;
     }

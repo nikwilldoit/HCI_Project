@@ -46,13 +46,15 @@ public class LoginActivity extends AppCompatActivity {
     Button btnLoginLog, btnRegisterLog, btnFaceLogin;
     TextView txtDisplayInfoLog;
 
-    PreviewView viewFinder;
     Button captureButton;
     android.view.View cameraLayout, loginLayout;
 
     DatabaseReference usersRef;
     DatabaseReference usersFaceRef;
     DatabaseReference userInfoRef;
+
+
+    PreviewView viewFinder;
 
     private ImageCapture imageCapture;
     private Interpreter tflite;
@@ -307,12 +309,13 @@ public class LoginActivity extends AppCompatActivity {
                             }
                         }
 
-                        if (bestScore > 0.50f) {
+                        if (bestScore > 0.5f) {
 
                             Toast.makeText(LoginActivity.this,
                                     "Face verified",
                                     Toast.LENGTH_LONG).show();
-
+                            String sh = "hey score is " + bestScore;
+                            Toast.makeText(LoginActivity.this, sh, Toast.LENGTH_LONG).show();
                             openNextActivity();
 
                         } else {

@@ -31,6 +31,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
     private final DatabaseReference forumRef;
     private final DatabaseReference reviewLikesRef;
+    private final DatabaseReference reviewViewsRef;
     private final String userId;
 
     public ForumAdapter(List<ForumReview> items,
@@ -47,6 +48,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
         forumRef = db.getReference("forum_reviews");
         reviewLikesRef = db.getReference("review_likes");
+        reviewViewsRef = db.getReference("review_views");
     }
 
     @NonNull
@@ -61,7 +63,6 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
     public void onBindViewHolder(@NonNull ForumVH h, int pos) {
 
         ForumReview r = items.get(pos);
-
         String title;
 
         if (r.type != null) {
@@ -82,6 +83,18 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
         h.txtText.setText(r.text != null ? r.text : "");
         h.txtLikes.setText(String.valueOf(r.likes));
         h.txtComments.setText(String.valueOf(r.comments));
+
+        h.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onReviewClick(r);
+        });
+        r.addView();
+
+        h.txtView.setText(String.valueOf(r.getViews()));
+
+        reviewViewsRef.child("review_id").setValue(r.id);
+        reviewViewsRef.child("user_id").setValue(userId);
+        reviewViewsRef.child("viewed_at").setValue("2026-03-07 14:04:40");
+
 
         if (r.id == null || userId == null) return;
 
@@ -148,10 +161,6 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
                         .addOnCompleteListener(task -> v.setEnabled(true));
             }
         });
-
-        h.itemView.setOnClickListener(v -> {
-            if (listener != null) listener.onReviewClick(r);
-        });
     }
 
     @Override
@@ -161,7 +170,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
 
     static class ForumVH extends RecyclerView.ViewHolder {
 
-        TextView txtTitle, txtUser, txtText, txtLikes, txtComments;
+        TextView txtTitle, txtUser, txtText, txtLikes, txtComments, txtView;
         RatingBar ratingBar;
         ImageButton btnLike;
 
@@ -175,6 +184,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ForumVH> {
             btnLike = v.findViewById(R.id.btnLike);
             txtLikes = v.findViewById(R.id.txtLikes);
             txtComments = v.findViewById(R.id.txtComments);
+            txtView = v.findViewById(R.id.txtView);
         }
     }
 }

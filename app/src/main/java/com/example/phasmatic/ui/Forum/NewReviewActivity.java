@@ -210,7 +210,8 @@ public class NewReviewActivity extends AppCompatActivity {
                 text,
                 rating,
                 likes,
-                createdAt
+                createdAt,
+                0
         );
 
 
