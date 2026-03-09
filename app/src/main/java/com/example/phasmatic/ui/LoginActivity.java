@@ -53,8 +53,9 @@ public class LoginActivity extends AppCompatActivity {
     DatabaseReference usersFaceRef;
     DatabaseReference userInfoRef;
 
+
     PreviewView viewFinder;
-    
+
     private ImageCapture imageCapture;
     private Interpreter tflite;
 
@@ -308,12 +309,13 @@ public class LoginActivity extends AppCompatActivity {
                             }
                         }
 
-                        if (bestScore > 0.50f) {
+                        if (bestScore > 0.5f) {
 
                             Toast.makeText(LoginActivity.this,
                                     "Face verified",
                                     Toast.LENGTH_LONG).show();
-
+                            String sh = "hey score is " + bestScore;
+                            Toast.makeText(LoginActivity.this, sh, Toast.LENGTH_LONG).show();
                             openNextActivity();
 
                         } else {

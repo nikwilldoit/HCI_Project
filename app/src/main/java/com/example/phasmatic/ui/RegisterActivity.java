@@ -67,6 +67,11 @@ public class RegisterActivity extends AppCompatActivity {
     private int framesCapturedForAction = 0;
     private static final int FRAMES_PER_ACTION = 3;
 
+    private List<List<Double>> centerEmbeddings = new ArrayList<>();
+    private List<List<Double>> actionEmbeddings = new ArrayList<>();
+
+    private static final int CENTER_EMBEDDINGS = 3;
+
     private android.view.View registerLayout;
     private FaceGuideOverlay faceGuideOverlay;
 
@@ -143,6 +148,8 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Full name, email and password are required", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        List<List<Double>> finalEmbeddingsList = buildFinalEmbeddings();
 
         if (finalEmbeddingsList.isEmpty()) {
             Toast.makeText(this, "Please capture your face first", Toast.LENGTH_SHORT).show();
@@ -431,37 +438,29 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void processWithAugmentation(Bitmap faceBitmap) {
-        List<float[]> embeddings = generateEmbeddings(faceBitmap);
-        for (float[] emb : embeddings) {
-            List<Double> list = new ArrayList<>();
-            for (float f : emb) list.add((double) f);
-            finalEmbeddingsList.add(list);
+
+        Bitmap resized = Bitmap.createScaledBitmap(faceBitmap, 160, 160, true);
+        float[] emb = runModel(resized);
+        emb = normalize(emb);
+
+        List<Double> embeddingList = new ArrayList<>();
+        for(float v : emb) embeddingList.add((double) v);
+
+        if(currentAction == FaceAction.CENTER) {
+
+            if(centerEmbeddings.size() < CENTER_EMBEDDINGS){
+                centerEmbeddings.add(embeddingList);
+            }
+
+        } else {
+
+            if(actionEmbeddings.size() < 5){
+                actionEmbeddings.add(embeddingList);
+            }
+
         }
-        Toast.makeText(this, "Face processed successfully!", Toast.LENGTH_SHORT).show();
-    }
 
-    private List<Bitmap> augmentImage(Bitmap original) {
-        List<Bitmap> augmented = new ArrayList<>();
-        augmented.add(original);
-
-        try {
-            Matrix flipMatrix = new Matrix();
-            flipMatrix.preScale(-1.0f, 1.0f);
-            augmented.add(Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), flipMatrix, true));
-        } catch (Exception ignored) {}
-
-        try {
-            augmented.add(changeBrightness(original, 1.1f));
-            augmented.add(changeBrightness(original, 0.9f));
-        } catch (Exception ignored) {}
-
-        try {
-            Matrix rotate = new Matrix();
-            rotate.postRotate(5);
-            augmented.add(Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), rotate, true));
-        } catch (Exception ignored) {}
-
-        return augmented;
+        Toast.makeText(this, "Face captured", Toast.LENGTH_SHORT).show();
     }
 
     private Bitmap changeBrightness(Bitmap bmp, float factor) {
@@ -478,16 +477,6 @@ public class RegisterActivity extends AppCompatActivity {
         return newBitmap;
     }
 
-    private List<float[]> generateEmbeddings(Bitmap faceBitmap) {
-        List<float[]> embeddings = new ArrayList<>();
-        List<Bitmap> augmentedImages = augmentImage(faceBitmap);
-        for (Bitmap bmp : augmentedImages) {
-            Bitmap resized = Bitmap.createScaledBitmap(bmp, 160, 160, true);
-            float[] emb = runModel(resized);
-            embeddings.add(normalize(emb));
-        }
-        return embeddings;
-    }
 
     private float[] runModel(Bitmap bitmap) {
         ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * 160 * 160 * 3 * 4);
@@ -514,4 +503,44 @@ public class RegisterActivity extends AppCompatActivity {
         for (int i = 0; i < emb.length; i++) emb[i] /= norm;
         return emb;
     }
+
+    private List<Double> computeAverageEmbedding(List<List<Double>> embeddings){
+
+        int dim = embeddings.get(0).size();
+        double[] avg = new double[dim];
+
+        for(List<Double> emb : embeddings){
+            for(int i=0;i<dim;i++){
+                avg[i] += emb.get(i);
+            }
+        }
+
+        for(int i=0;i<dim;i++){
+            avg[i] /= embeddings.size();
+        }
+
+        List<Double> result = new ArrayList<>();
+        for(double v : avg) result.add(v);
+
+        return result;
+    }
+
+    private List<List<Double>> buildFinalEmbeddings(){
+
+        List<List<Double>> finalList = new ArrayList<>();
+
+        finalList.addAll(centerEmbeddings);
+        finalList.addAll(actionEmbeddings);
+
+        List<List<Double>> all = new ArrayList<>();
+        all.addAll(centerEmbeddings);
+        all.addAll(actionEmbeddings);
+
+        List<Double> avg = computeAverageEmbedding(all);
+
+        finalList.add(avg);
+
+        return finalList;
+    }
+
 }

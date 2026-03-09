@@ -52,6 +52,7 @@ public class ReviewDetailActivity extends AppCompatActivity {
     String reviewId;
 
     CommentsAdapter commentsAdapter;
+    private int viewCounter = 0;
     List<ReviewComment> comments = new ArrayList<>();
 
     private DatabaseReference reviewCommentsRef;
