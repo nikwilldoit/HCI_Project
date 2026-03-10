@@ -53,6 +53,8 @@ public class ReviewDetailActivity extends AppCompatActivity {
 
     CommentsAdapter commentsAdapter;
     private int viewCounter = 0;
+    private DatabaseReference reviewViewsRef;
+
     List<ReviewComment> comments = new ArrayList<>();
 
     private DatabaseReference reviewCommentsRef;
@@ -133,6 +135,12 @@ public class ReviewDetailActivity extends AppCompatActivity {
         forumRef = db.getReference("forum_reviews");
         commentsCount = getIntent().getIntExtra("comments", 0);
 
+        reviewViewsRef = db.getReference("review_views");
+        if (reviewId != null && !reviewId.isEmpty()
+                && userId != null && !userId.isEmpty()) {
+            registerView();
+        }
+
 
         rvComments.setLayoutManager(new LinearLayoutManager(this));
         commentsAdapter = new CommentsAdapter(
@@ -155,6 +163,34 @@ public class ReviewDetailActivity extends AppCompatActivity {
             postComment(cText);
         });
     }
+
+    private void registerView() {
+        String viewKey = reviewId + "_" + userId;
+        DatabaseReference viewRef = reviewViewsRef.child(viewKey);
+
+        viewRef.get().addOnSuccessListener(snap -> {
+            if (snap.exists()) return; //to exei dei hdh o xrhsts
+
+            String viewedAt = new SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+            ).format(new Date());
+
+            viewRef.child("review_id").setValue(reviewId);
+            viewRef.child("user_id").setValue(userId);
+            viewRef.child("viewed_at").setValue(viewedAt);
+
+            //aujhsh counter sto forum_reviews
+            forumRef.child(reviewId).child("views")
+                    .get()
+                    .addOnSuccessListener(countSnap -> {
+                        Long current = countSnap.getValue(Long.class);
+                        long newVal = (current != null ? current : 0) + 1;
+                        forumRef.child(reviewId).child("views").setValue(newVal);
+                    });
+        });
+    }
+
 
     private void loadAllUsersAndInfoThenComments() {
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
