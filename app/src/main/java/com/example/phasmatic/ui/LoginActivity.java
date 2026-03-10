@@ -316,7 +316,7 @@ public class LoginActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
 //                            String sh = "hey score is " + bestScore;
 //                            Toast.makeText(LoginActivity.this, sh, Toast.LENGTH_LONG).show();
-//                            openNextActivity();
+                              openNextActivity();
 
                         } else {
 
