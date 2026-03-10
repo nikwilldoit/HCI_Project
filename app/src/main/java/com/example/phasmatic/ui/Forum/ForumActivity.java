@@ -231,18 +231,49 @@ public class ForumActivity extends AppCompatActivity {
     }
 
     private void loadReviews() {
-        forumRef.orderByChild("timestamp").addValueEventListener(new ValueEventListener() {
+        forumRef.orderByChild("views").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 reviews.clear();
                 allReviews.clear();
+
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    ForumReview r = child.getValue(ForumReview.class);
-                    if (r != null) {
-                        reviews.add(0, r);
-                        allReviews.add(0, r);
-                    }
+                    ForumReview r = new ForumReview();
+
+                    r.id = child.getKey();
+                    r.user_id = child.child("user_id").getValue(String.class);
+                    r.user_name = child.child("user_name").getValue(String.class);
+                    r.type = child.child("type").getValue(String.class);
+                    r.university = child.child("university").getValue(String.class);
+                    r.country = child.child("country").getValue(String.class);
+                    r.text = child.child("text").getValue(String.class);
+
+                    Double ratingDouble = child.child("rating").getValue(Double.class);
+                    r.rating = ratingDouble != null ? ratingDouble.floatValue() : 0f;
+
+                    Long likesLong = child.child("likes").getValue(Long.class);
+                    r.likes = likesLong != null ? likesLong.intValue() : 0;
+
+                    Long commentsLong = child.child("comments").getValue(Long.class);
+                    r.comments = commentsLong != null ? commentsLong.intValue() : 0;
+
+                    Long viewsLong = child.child("views").getValue(Long.class);
+                    r.views = viewsLong != null ? viewsLong.intValue() : 0;
+
+                    String createdAt = child.child("created_at").getValue(String.class);
+                    r.timestamp = createdAt;
+
+                    allReviews.add(r);
                 }
+
+                allReviews.sort((a, b) -> {
+                    int diff = Integer.compare(b.views, a.views);
+                    if (diff != 0) return diff;
+                    return a.timestamp != null && b.timestamp != null
+                            ? b.timestamp.compareTo(a.timestamp)
+                            : 0;
+                });
+
                 applyFilters();
             }
 
@@ -250,6 +281,8 @@ public class ForumActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError error) {}
         });
     }
+
+
 
     private void openAddReview() {
         Intent i = new Intent(this, NewReviewActivity.class);
