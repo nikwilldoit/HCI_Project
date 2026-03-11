@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+//    id 'com.android.application'
+//    id 'org.jetbrains.kotlin.android'
+
 }
 
 android {
@@ -43,6 +46,7 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
+    implementation libs.kotlin.stdlib
 
     // Firebase
     implementation platform("com.google.firebase:firebase-bom:34.8.0")
@@ -76,5 +80,4 @@ dependencies {
 
     implementation "com.github.bumptech.glide:glide:4.16.0"
     annotationProcessor "com.github.bumptech.glide:compiler:4.16.0"
-
 }
