@@ -1,13 +1,18 @@
 package com.example.phasmatic.ui;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,11 +24,13 @@ import com.example.phasmatic.R;
 import com.example.phasmatic.data.ai.OpenAIChatClient;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 
+import java.util.ArrayList;
+
 public class ErasmusChatActivity extends AppCompatActivity {
 
     TextView txtChatTitle, txtChatLog;
     EditText edtUserInput;
-    Button btnSend;
+    Button btnSend, btnVoice;
     ImageButton btnBack;
     OpenAIChatClient chatClient;
     ImageView imgProfile;
@@ -68,6 +75,7 @@ public class ErasmusChatActivity extends AppCompatActivity {
         txtChatLog = findViewById(R.id.txtChatLog);
         edtUserInput = findViewById(R.id.edtUserInput);
         btnSend = findViewById(R.id.btnSend);
+        btnVoice = findViewById(R.id.btnVoice);
 
         txtChatTitle.setText("DECYRA Erasmus Assistant");
 
@@ -106,6 +114,45 @@ public class ErasmusChatActivity extends AppCompatActivity {
                 }
             });
         });
+
+        btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+    }
+
+    private void startSpeechRecognizer() {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-GR");
+
+        intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "el-GR");
+
+
+        try {
+            startActivityForResult(intent, REQUEST_SPEECH_RECOGNIZER);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Η αναγνώριση φωνής δεν υποστηρίζεται στη συσκευή σας", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Log.i("DEMO-REQUESTCODE", Integer.toString(requestCode));
+        Log.i("DEMO-RESULTCODE", Integer.toString(resultCode));
+
+        if (requestCode == REQUEST_SPEECH_RECOGNIZER && resultCode == Activity.RESULT_OK && data != null) {
+            ArrayList<String> text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            edtUserInput.setText(text.get(0));
+
+            Log.i("DEMO-ANSWER", text.get(0));
+
+        } else {
+            System.out.println("Recognizer API error");
+        }
     }
 
     private void appendToChat(String text) {

@@ -113,6 +113,14 @@
             android:layout_marginStart="8dp"
             android:text="Send"
             android:textAllCaps="false"/>
+
+        <Button
+            android:id="@+id/btnVoice"
+            android:layout_width="92dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:text="Voice"
+            android:textAllCaps="false"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

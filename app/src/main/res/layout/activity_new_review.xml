@@ -117,6 +117,13 @@
                 android:padding="8dp" />
 
             <Button
+                android:id="@+id/btnVoice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Voice" />
+
+            <Button
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

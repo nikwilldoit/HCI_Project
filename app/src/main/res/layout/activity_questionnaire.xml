@@ -160,6 +160,16 @@
                 android:textColor="#FFFFFF" />
 
             <Button
+                android:id="@+id/btnVoice"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Voice"
+                android:textAllCaps="false"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/btn_primary"
+                android:textColor="#FFFFFF" />
+
+            <Button
                 android:id="@+id/btnNext"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"

@@ -1,7 +1,11 @@
 package com.example.phasmatic.ui;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +30,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
     private TextView txtProgress, txtQuestion;
     private EditText edtAnswer;
-    private Button btnPrev, btnNext;
+    private Button btnPrev, btnNext, btnVoice;
     private ProgressBar progressQuestions;
     private TextView txtModeTitle;
     private ImageView[] stepDots;
@@ -64,6 +68,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
         btnBack = findViewById(R.id.btnBack);
         imgProfile = findViewById(R.id.imgProfile);
+        btnVoice = findViewById(R.id.btnVoice);
 
         BackButtonHelper.attachToGoModeSelection(
                 this,
@@ -146,6 +151,45 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 saveExpectationsAndGoChat();
             }
         });
+
+        btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+    }
+
+    private void startSpeechRecognizer() {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-GR");
+
+        intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "el-GR");
+
+
+        try {
+            startActivityForResult(intent, REQUEST_SPEECH_RECOGNIZER);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Η αναγνώριση φωνής δεν υποστηρίζεται στη συσκευή σας", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Log.i("DEMO-REQUESTCODE", Integer.toString(requestCode));
+        Log.i("DEMO-RESULTCODE", Integer.toString(resultCode));
+
+        if (requestCode == REQUEST_SPEECH_RECOGNIZER && resultCode == Activity.RESULT_OK && data != null) {
+            ArrayList<String> text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            edtAnswer.setText(text.get(0));
+
+            Log.i("DEMO-ANSWER", text.get(0));
+
+        } else {
+            System.out.println("Recognizer API error");
+        }
     }
 
     private void loadQuestionsFromDb(String mode) {
@@ -285,10 +329,10 @@ public class QuestionnaireActivity extends AppCompatActivity {
         }
 
         if ("erasmus".equals(modeType)) {
-            sb.append("\nΛάβε υπόψη όλα τα παραπάνω και πρότεινέ μου 2-3 κατάλληλες επιλογές Erasmus, εξηγώντας γιατί ταιριάζουν στο προφίλ μου.");
+            sb.append("\nΛάβε υπόψη όλα τα παραπάνω και πρότεινέ μου 1 κατάλληλη επιλογή Erasmus, εξηγώντας γιατί ταιριάζουν στο προφίλ μου.");
         } else if ("master".equals(modeType)) {
-            sb.append("\nΛάβε υπόψη όλα τα παραπάνω και πρότεινέ μου 2-3 κατάλληλα προγράμματα master, εξηγώντας γιατί ταιριάζουν στο προφίλ μου.");
-        } else {
+            sb.append("\nΛάβε υπόψη όλα τα παραπάνω και πρότεινέ μου 1 κατάλληλο προγράμματα master, εξηγώντας γιατί ταιριάζουν στο προφίλ μου.");
+        } else { //DEN KALIPTETAI AKOMA
             sb.append("\nΛάβε υπόψη όλα τα παραπάνω και δώσε μου καθοδήγηση για τα επόμενα βήματα στις σπουδές μου.");
         }
 
