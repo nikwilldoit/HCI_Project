@@ -1,7 +1,11 @@
 package com.example.phasmatic.ui.Forum;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -35,7 +39,7 @@ public class NewReviewActivity extends AppCompatActivity {
     private Spinner spnType, spnUniversity;
     private AutoCompleteTextView dropCountry;
     private EditText edtText, edtRating;
-    private Button btnSave;
+    private Button btnSave, btnVoice;
     private ImageButton btnBack;
     private ImageView imgProfile;
 
@@ -69,6 +73,7 @@ public class NewReviewActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btnSave);
         btnBack = findViewById(R.id.btnBack);
         imgProfile = findViewById(R.id.imgProfile);
+        btnVoice = findViewById(R.id.btnVoice);
 
         profileMenuHelper = new ProfileMenuHelper(this, userId, userFullName, userEmail, userPhone);
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
@@ -90,7 +95,46 @@ public class NewReviewActivity extends AppCompatActivity {
         setupCountryUniversityDropdowns();
 
         btnSave.setOnClickListener(v -> saveReview());
+
+        btnVoice.setOnClickListener(v -> startSpeechRecognizer());
     }
+    private void startSpeechRecognizer() {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-GR");
+
+        intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "el-GR");
+
+
+        try {
+            startActivityForResult(intent, REQUEST_SPEECH_RECOGNIZER);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Η αναγνώριση φωνής δεν υποστηρίζεται στη συσκευή σας", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Log.i("DEMO-REQUESTCODE", Integer.toString(requestCode));
+        Log.i("DEMO-RESULTCODE", Integer.toString(resultCode));
+
+        if (requestCode == REQUEST_SPEECH_RECOGNIZER && resultCode == Activity.RESULT_OK && data != null) {
+            ArrayList<String> text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            edtText.setText(text.get(0));
+
+            Log.i("DEMO-ANSWER", text.get(0));
+
+        } else {
+            System.out.println("Recognizer API error");
+        }
+    }
+
 
     private void setupCountryUniversityDropdowns() {
         countryAdapter = new ArrayAdapter<>(
