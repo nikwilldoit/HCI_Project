@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.41, for Win64 (x86_64)
 --
--- Host: localhost    Database: mega
+-- Host: localhost    Database: pos_app
 -- ------------------------------------------------------
 -- Server version	8.0.41
 
@@ -30,7 +30,7 @@ CREATE TABLE `questionnaire_questions` (
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_mode_question_order` (`mode_type`,`question_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `questionnaire_questions` (
 
 LOCK TABLES `questionnaire_questions` WRITE;
 /*!40000 ALTER TABLE `questionnaire_questions` DISABLE KEYS */;
-INSERT INTO `questionnaire_questions` VALUES (1,'erasmus',1,'Σε ποια χώρα θα ήθελες ιδανικά να πας;',1),(2,'erasmus',2,'Πόσο μακριά από το σπίτι αισθάνεσαι άνετα να ζεις;',1),(3,'erasmus',3,'Τι σε ενδιαφέρει περισσότερο: πόλη, πανεπιστήμιο ή κόστος;',1),(4,'master',1,'Σε ποιο αντικείμενο θες να κάνεις master;',1),(5,'master',2,'Πόσο σημαντικό είναι το ranking του πανεπιστημίου για σένα;',1),(6,'master',3,'Τι budget σκέφτεσαι για δίδακτρα + διαβίωση;',1);
+INSERT INTO `questionnaire_questions` VALUES (1,'erasmus',1,'Σε ποιό μέρος της Ευρώπης θα ήθελες ιδανικά να πας για Erasmus;',1),(2,'erasmus',2,'Πόσο σημαντικό είναι για σένα το κόστος ζωής στη χώρα που θα πας;',1),(3,'erasmus',3,'Τι είδους πόλη θα προτιμούσες για την εμπειρία Erasmus;',1),(4,'erasmus',4,'Πόσο σημαντική είναι για σένα η φοιτητική ζωή και η κοινωνική εμπειρία στο Erasmus;',1),(5,'erasmus',5,'Πόσο σημαντικό είναι το επίπεδο και η φήμη του πανεπιστημίου που θα επιλέξεις;',1),(6,'erasmus',6,'Πόσο άνετα αισθάνεσαι να ζήσεις σε μια χώρα με διαφορετική γλώσσα και κουλτούρα δεδομένου ότι ζεις στην Ελλάδα;',1),(7,'erasmus',7,'Τι θα ήθελες να κερδίσεις κυρίως από την εμπειρία Erasmus;',1),(8,'master',1,'Σε ποιον τομέα της Πληροφορικής θα ήθελες να κάνεις μεταπτυχιακό;',1),(9,'master',2,'Σε ποιό μέρος της Ευρώπης θα προτιμούσες να κάνεις το μεταπτυχιακό σου;',1),(10,'master',3,'Πόσο σημαντική είναι για σένα η κατάταξη (ranking) του πανεπιστημίου;',1),(11,'master',4,'Ποιο είναι το μέγιστο budget που μπορείς να διαθέσεις για δίδακτρα και διαβίωση;',1),(12,'master',5,'Ποιος είναι ο βασικός σου στόχος μετά το μεταπτυχιακό;',1),(13,'master',6,'Πόσο σημαντικό είναι το πρόγραμμα να προσφέρει πρακτική άσκηση ή συνεργασία με εταιρείες;',1),(14,'master',7,'Πόσο σε ενδιαφέρει η δυνατότητα συνέχισης σε διδακτορικό (PhD) μετά το μεταπτυχιακό;',1);
 /*!40000 ALTER TABLE `questionnaire_questions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-03  4:19:37
+-- Dump completed on 2026-03-11 21:37:46
