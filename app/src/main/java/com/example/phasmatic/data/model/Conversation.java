@@ -1,16 +1,16 @@
 package com.example.phasmatic.data.model;
 
 public class Conversation {
-    public long id;
+    public String id;
     public String lastMessage;
-    public long leftUser_id;
-    public long rightUser_id;
+    public String leftUser_id;
+    public String rightUser_id;
     public String timeLastMessage;
 
     public Conversation() {
     }
 
-    public Conversation(long id, String lastMessage, long leftUser_id, long rightUser_id, String timeLastMessage) {
+    public Conversation(String id, String lastMessage, String leftUser_id, String rightUser_id, String timeLastMessage) {
         this.id = id;
         this.lastMessage = lastMessage;
         this.leftUser_id = leftUser_id;
@@ -18,11 +18,11 @@ public class Conversation {
         this.timeLastMessage = timeLastMessage;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -34,19 +34,19 @@ public class Conversation {
         this.lastMessage = lastMessage;
     }
 
-    public long getLeftUser_id() {
+    public String getLeftUser_id() {
         return leftUser_id;
     }
 
-    public void setLeftUser_id(long leftUser_id) {
+    public void setLeftUser_id(String leftUser_id) {
         this.leftUser_id = leftUser_id;
     }
 
-    public long getRightUser_id() {
+    public String getRightUser_id() {
         return rightUser_id;
     }
 
-    public void setRightUser_id(long rightUser_id) {
+    public void setRightUser_id(String rightUser_id) {
         this.rightUser_id = rightUser_id;
     }
 

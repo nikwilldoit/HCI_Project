@@ -10,9 +10,10 @@
         android:id="@+id/txtMessageUser"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_message_user"
+        android:background="@drawable/baseline_face_24"
         android:textColor="#fff"
         android:textSize="14sp"
-        android:padding="10dp"
-        android:maxWidth="70%"/>
+        android:padding="10dp"/>
+        //android:maxWidth="70%"
+        />
 </LinearLayout>

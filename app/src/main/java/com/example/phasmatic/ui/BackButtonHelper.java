@@ -6,6 +6,8 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.ui.Chat.ChatActivity;
+import com.example.phasmatic.ui.Chat.UsersActivity;
 import com.example.phasmatic.ui.Forum.ForumActivity;
 
 public class BackButtonHelper {
@@ -80,6 +82,26 @@ public class BackButtonHelper {
 
         btnBack.setOnClickListener(v -> {
             Intent i = new Intent(activity, ForumActivity.class);
+            i.putExtra("userId", userId);
+            i.putExtra("userFullName", fullName);
+            i.putExtra("userEmail", email);
+            i.putExtra("userPhone", phone);
+            activity.startActivity(i);
+            activity.finish();
+        });
+    }
+
+    public static void attachToGoChat(Activity activity,
+                                       int buttonId,
+                                       String userId,
+                                       String fullName,
+                                      String email,
+                                      String phone) {
+        ImageButton btnBack = activity.findViewById(buttonId);
+        if (btnBack == null) return;
+
+        btnBack.setOnClickListener(v -> {
+            Intent i = new Intent(activity, UsersActivity.class);
             i.putExtra("userId", userId);
             i.putExtra("userFullName", fullName);
             i.putExtra("userEmail", email);

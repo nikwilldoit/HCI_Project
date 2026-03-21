@@ -57,6 +57,8 @@
 
         <activity android:name=".ui.Profile_Menu.PublicProfileActivity" />
 
+        <activity android:name=".ui.Chat.UsersActivity" />
+        <activity android:name=".ui.Chat.ChatActivity" />
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
