@@ -16,6 +16,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.phasmatic.R;
 import com.example.phasmatic.ui.Forum.ForumActivity;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
+
 
 
 public class ModeSelectionActivity extends AppCompatActivity {
@@ -52,6 +55,7 @@ public class ModeSelectionActivity extends AppCompatActivity {
         );
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         txtTitle = findViewById(R.id.txtTitleMode);
         txtSubtitle = findViewById(R.id.txtSubtitleMode);
@@ -115,5 +119,15 @@ public class ModeSelectionActivity extends AppCompatActivity {
 
         videoView.setOnCompletionListener(mp -> videoView.start());
     }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
+    }
+
 }
 

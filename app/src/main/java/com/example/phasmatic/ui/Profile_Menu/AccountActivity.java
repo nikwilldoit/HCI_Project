@@ -9,31 +9,30 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.extras.ProfileImageManager;
 import com.example.phasmatic.ui.BackButtonHelper;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-
-import java.io.ByteArrayOutputStream;
 
 public class AccountActivity extends AppCompatActivity {
+
     ImageButton btnBack;
     private Button btnEditProfile, btnEditAcademic;
     private TextView txtFullName, txtEmail, txtPhone;
     private TextView txtUniversity, txtAcademicLevel, txtField,
             txtLanguages, txtGpa, txtBudget, txtYearOfStudies, txtAdvisorType;
+
     private String userId;
     private String userFullName, userEmail, userPhone;
 
     private ImageView imgProfilePhoto;
     private Uri imageUri;
-    private StorageReference storageRef;
 
     private static final int PICK_IMAGE = 1;
     private static final int TAKE_PHOTO = 2;
@@ -63,6 +62,8 @@ public class AccountActivity extends AppCompatActivity {
         txtYearOfStudies = findViewById(R.id.txtYearOfStudies);
         txtAdvisorType = findViewById(R.id.txtAdvisorType);
 
+        imgProfilePhoto = findViewById(R.id.imgProfilePhoto);
+
         userId = getIntent().getStringExtra("userId");
 
         BackButtonHelper.attachToGoModeSelection(
@@ -77,11 +78,18 @@ public class AccountActivity extends AppCompatActivity {
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
+
         usersRef = firebaseDb.getReference("users");
         userInfoRef = firebaseDb.getReference("user_info");
 
         loadUser();
         loadUserInfo();
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfilePhoto.setImageBitmap(bitmap);
+        } else {
+            imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
+        }
 
         btnEditProfile.setOnClickListener(v -> {
             Intent i = new Intent(AccountActivity.this, EditProfileActivity.class);
@@ -98,23 +106,16 @@ public class AccountActivity extends AppCompatActivity {
             startActivity(i);
         });
 
-        imgProfilePhoto = findViewById(R.id.imgProfilePhoto);
-
-        storageRef = FirebaseStorage.getInstance().getReference("profile_images");
-
         imgProfilePhoto.setOnClickListener(v -> showImageOptions());
-
     }
 
     private void showImageOptions() {
-
         String[] options = {"Take photo", "Choose from gallery"};
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Profile Photo");
 
         builder.setItems(options, (dialog, which) -> {
-
             if (which == 0) {
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, TAKE_PHOTO);
@@ -125,7 +126,6 @@ public class AccountActivity extends AppCompatActivity {
                 galleryIntent.setType("image/*");
                 startActivityForResult(galleryIntent, PICK_IMAGE);
             }
-
         });
 
         builder.show();
@@ -135,62 +135,39 @@ public class AccountActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(resultCode == RESULT_OK){
+        if (resultCode == RESULT_OK && data != null) {
 
-            if(requestCode == PICK_IMAGE){
+            if (requestCode == PICK_IMAGE) {
+                try {
+                    imageUri = data.getData();
+                    String savedPath = ProfileImageManager.saveUri(this, userId, imageUri);
 
-                imageUri = data.getData();
-                imgProfilePhoto.setImageURI(imageUri);
-
-                uploadImage();
-
+                    if (savedPath != null) {
+                        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+                        imgProfilePhoto.setImageBitmap(bitmap);
+                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            if(requestCode == TAKE_PHOTO){
+            if (requestCode == TAKE_PHOTO) {
+                try {
+                    Bitmap photo = (Bitmap) data.getExtras().get("data");
+                    String savedPath = ProfileImageManager.saveBitmap(this, userId, photo);
 
-                Bitmap photo = (Bitmap) data.getExtras().get("data");
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                photo.compress(Bitmap.CompressFormat.JPEG,100,baos);
-
-                byte[] dataBytes = baos.toByteArray();
-
-                uploadCameraImage(dataBytes);
-
+                    if (savedPath != null) {
+                        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+                        imgProfilePhoto.setImageBitmap(bitmap);
+                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-
         }
     }
-
-    private void uploadImage(){
-
-        StorageReference fileRef = storageRef.child(userId + ".jpg");
-
-        fileRef.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot ->
-                        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-
-                            String url = uri.toString();
-
-                            usersRef.child(userId).child("profileImageUrl").setValue(url);
-
-                        }));
-    }
-    private void uploadCameraImage(byte[] data){
-
-        StorageReference fileRef = storageRef.child(userId + ".jpg");
-
-        fileRef.putBytes(data)
-                .addOnSuccessListener(taskSnapshot ->
-                        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-
-                            String url = uri.toString();
-
-                            usersRef.child(userId).child("profileImageUrl").setValue(url);
-
-                        }));
-    }
-
 
 
     private void loadUser() {
@@ -230,8 +207,7 @@ public class AccountActivity extends AppCompatActivity {
             txtLanguages.setText("Languages: " + (languages != null ? languages : "-"));
             txtGpa.setText("GPA: " + (gpa != null ? gpa : 0.0));
             txtBudget.setText("Budget per year: " + (budgetPerYear != null ? budgetPerYear : 0.0));
-            txtYearOfStudies.setText("Year of studies: " +
-                    (yearOfStudies != null ? yearOfStudies : 0));
+            txtYearOfStudies.setText("Year of studies: " + (yearOfStudies != null ? yearOfStudies : 0));
             txtAdvisorType.setText("Advisor type: " + (advisorType != null ? advisorType : "-"));
         });
     }
@@ -241,5 +217,11 @@ public class AccountActivity extends AppCompatActivity {
         super.onResume();
         loadUser();
         loadUserInfo();
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfilePhoto.setImageBitmap(bitmap);
+        } else {
+            imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
+        }
     }
 }

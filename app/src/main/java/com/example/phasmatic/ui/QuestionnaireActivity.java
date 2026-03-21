@@ -22,6 +22,8 @@ import com.example.phasmatic.data.model.UserExpectation;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +70,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
         btnBack = findViewById(R.id.btnBack);
         imgProfile = findViewById(R.id.imgProfile);
+
         btnVoice = findViewById(R.id.btnVoice);
 
         BackButtonHelper.attachToGoModeSelection(
@@ -88,7 +91,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         );
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
-
+        loadProfilePhoto();
 
 
         ImageView step1 = findViewById(R.id.step1);
@@ -153,6 +156,15 @@ public class QuestionnaireActivity extends AppCompatActivity {
         });
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+    }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
     }
 
     private void startSpeechRecognizer() {
