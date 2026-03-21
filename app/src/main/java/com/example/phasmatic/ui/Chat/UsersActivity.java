@@ -58,7 +58,15 @@ public class UsersActivity extends AppCompatActivity {
         imgProfile = findViewById(R.id.imgProfile);
 
         BackButtonHelper.attachToGoModeSelection(this, R.id.btnBack, userId,userFullName, userEmail, userPhone);
-//        btnBack.setOnClickListener(v -> finish());
+
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                userId,
+                userFullName,
+                userEmail,
+                userPhone
+        );
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
         loadProfilePhoto();

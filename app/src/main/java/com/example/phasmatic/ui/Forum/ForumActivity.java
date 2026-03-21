@@ -106,8 +106,6 @@ public class ForumActivity extends AppCompatActivity {
 
         });
 
-        //attachToGoChat()
-
         rvReviews.setAdapter(adapter);
 
 

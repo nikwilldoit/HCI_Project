@@ -73,12 +73,23 @@ public class ChatActivity extends AppCompatActivity {
 
         imgProfile = findViewById(R.id.imgProfile);
 
-        btnBack = findViewById(R.id.btnBack);
-
-
         currentUid = getIntent().getStringExtra("userId");
         otherUid = getIntent().getStringExtra("otherUid");
         otherName = getIntent().getStringExtra("otherName");
+
+        String userEmail = getIntent().getStringExtra("userEmail");
+        String userPhone = getIntent().getStringExtra("userPhone");
+
+        profileMenuHelper = new ProfileMenuHelper(
+                this,
+                currentUid,
+                otherName,
+                userEmail,
+                userPhone
+        );
+
+        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+
 
         txtChatWith.setText(otherName != null ? otherName : "Chat");
 
@@ -95,16 +106,10 @@ public class ChatActivity extends AppCompatActivity {
 
         btnSend.setOnClickListener(v -> sendMessage());
 
-        imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
         loadProfilePhoto();
 
         findOrCreateConversation();
 
-//        Intent i = new Intent(this, UsersActivity.class);
-//        i.putExtra("userId", currentUid);
-//        i.putExtra("otherUid", otherUid);
-//        i.putExtra("otherName", otherName);
-//        startActivity(i);
     }
 
     private void loadProfilePhoto() {
