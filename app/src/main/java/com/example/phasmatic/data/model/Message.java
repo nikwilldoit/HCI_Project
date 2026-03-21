@@ -1,58 +1,57 @@
 package com.example.phasmatic.data.model;
 
 public class Message {
-    public long id;
-    public long conversationId;
-    public long senderId;
-    public long receiverId;
+    public String id;
+    public String conversationId;
+    public String sender_id;
+    public String receiver_id;
     public String messageText;
     public String timeMessage;
-    public int statusOfMessage;
+    public String statusOfMessage;
 
     public Message() {
     }
 
-    public Message(long id, long conversationId, long senderId, long receiverId,
-                   String messageText, String timeMessage, int statusOfMessage) {
+    public Message(String id, String conversationId, String sender_id, String receiver_id, String messageText, String timeMessage, String statusOfMessage) {
         this.id = id;
         this.conversationId = conversationId;
-        this.senderId = senderId;
-        this.receiverId = receiverId;
+        this.sender_id = sender_id;
+        this.receiver_id = receiver_id;
         this.messageText = messageText;
         this.timeMessage = timeMessage;
         this.statusOfMessage = statusOfMessage;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public long getConversationId() {
+    public String getConversationId() {
         return conversationId;
     }
 
-    public void setConversationId(long conversationId) {
+    public void setConversationId(String conversationId) {
         this.conversationId = conversationId;
     }
 
-    public long getSenderId() {
-        return senderId;
+    public String getSender_id() {
+        return sender_id;
     }
 
-    public void setSenderId(long senderId) {
-        this.senderId = senderId;
+    public void setSender_id(String sender_id) {
+        this.sender_id = sender_id;
     }
 
-    public long getReceiverId() {
-        return receiverId;
+    public String getReceiver_id() {
+        return receiver_id;
     }
 
-    public void setReceiverId(long receiverId) {
-        this.receiverId = receiverId;
+    public void setReceiver_id(String receiver_id) {
+        this.receiver_id = receiver_id;
     }
 
     public String getMessageText() {
@@ -71,11 +70,11 @@ public class Message {
         this.timeMessage = timeMessage;
     }
 
-    public int getStatusOfMessage() {
+    public String getStatusOfMessage() {
         return statusOfMessage;
     }
 
-    public void setStatusOfMessage(int statusOfMessage) {
+    public void setStatusOfMessage(String statusOfMessage) {
         this.statusOfMessage = statusOfMessage;
     }
 }

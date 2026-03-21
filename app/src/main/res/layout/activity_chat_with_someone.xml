@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#071B36">
+
+
+
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="12dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/baseline_arrow_back_24"
+        app:tint="@android:color/black" />
+
+    <ImageView
+        android:id="@+id/imgProfile"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/profile_circle_bg"
+        android:scaleType="centerCrop"
+        android:padding="0dp"
+        android:clipToOutline="true"
+        android:src="@drawable/baseline_face_24" />
+
+    <!-- Όνομα συνομιλητή -->
+    <TextView
+        android:id="@+id/txtChatWith"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/btnBack"
+        android:layout_alignTop="@id/btnBack"
+        android:text="Chat with User"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"/>
+
+    <!-- RecyclerView για τα μηνύματα -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMessages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/layoutSendMessage"
+        android:padding="12dp"
+        android:clipToPadding="false"/>
+
+    <!-- Περιοχή για πληκτρολόγιο και send button -->
+    <LinearLayout
+        android:id="@+id/layoutSendMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#0A1B35">
+
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:hint="Type a message..."
+            android:textColor="#fff"
+            android:textColorHint="#aaa"
+            android:background="@drawable/bg_answer_input"
+            android:padding="12dp"/>
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_send"
+            android:contentDescription="Send"/>
+    </LinearLayout>
+
+</RelativeLayout>
