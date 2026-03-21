@@ -21,6 +21,8 @@ public class PublicProfileActivity extends AppCompatActivity {
     private String currentUserId; // uid tou logged-in user
     private String loadedFullName = null; //full name tou user
 
+    private String userId, userFullName, userEmail, userPhone;
+
     private ImageButton btnBack, btnChat;
     private ImageView imgProfilePhoto;
     private TextView txtFullName, txtEmail, txtPhone;
@@ -51,6 +53,12 @@ public class PublicProfileActivity extends AppCompatActivity {
         txtYearOfStudies = findViewById(R.id.txtYearOfStudies);
         txtAdvisorType = findViewById(R.id.txtAdvisorType);
 
+
+        userId = intent.getStringExtra("userId");
+        userFullName = intent.getStringExtra("userFullName");
+        userEmail = intent.getStringExtra("userEmail");
+        userPhone = intent.getStringExtra("userPhone");
+
         btnBack.setOnClickListener(v -> onBackPressed());
 
         if (profileUid != null && !profileUid.isEmpty()) {
@@ -67,7 +75,9 @@ public class PublicProfileActivity extends AppCompatActivity {
                 R.id.btnChat,
                 currentUserId,
                 profileUid,
-                txtFullName.getText().toString().trim()
+                userFullName,
+                userEmail,
+                userPhone
         );
 
     }
