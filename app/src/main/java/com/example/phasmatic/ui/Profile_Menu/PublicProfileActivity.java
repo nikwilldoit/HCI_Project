@@ -1,6 +1,8 @@
 package com.example.phasmatic.ui.Profile_Menu;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,27 +12,37 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.extras.ProfileImageManager;
+import com.example.phasmatic.ui.BackButtonHelper;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class PublicProfileActivity extends AppCompatActivity {
 
     private String userId;
 
-    private ImageButton btnBack;
+    private ImageButton btnBack, btnChat;
     private ImageView imgProfilePhoto;
     private TextView txtFullName, txtEmail, txtPhone;
+    private String userEmail;
+    private String userPhone, userFullName;
     private TextView txtUniversity, txtAcademicLevel, txtField,
             txtLanguages, txtGpa, txtBudget, txtYearOfStudies, txtAdvisorType;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_public_profile);
 
-        userId = getIntent().getStringExtra("userId");
 
+        Intent intent = getIntent();
+        userId = getIntent().getStringExtra("userId");
         btnBack = findViewById(R.id.btnBack);
+        btnChat = findViewById(R.id.btnChat);
         imgProfilePhoto = findViewById(R.id.imgProfilePhoto);
+        txtFullName = findViewById(R.id.txtFullName);
+        userEmail = intent.getStringExtra("userEmail");
+        userPhone = intent.getStringExtra("userPhone");
+        userFullName = intent.getStringExtra("userFullName");
         txtFullName = findViewById(R.id.txtFullName);
         txtEmail = findViewById(R.id.txtEmail);
         txtPhone = findViewById(R.id.txtPhone);
@@ -56,6 +68,9 @@ public class PublicProfileActivity extends AppCompatActivity {
                 imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
             }
         }
+
+        btnChat.setOnClickListener(v-> onBackPressed());
+        BackButtonHelper.attachToGoChat(this, R.id.btnChat, userId, userFullName, userEmail, userPhone);
     }
 
 
