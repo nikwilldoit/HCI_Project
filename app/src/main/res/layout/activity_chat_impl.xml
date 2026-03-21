@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#071B36">
+
+    <!-- Πίσω κουμπί -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="12dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/baseline_arrow_back_24" />
+
+    <!-- Avatar του χρήστη -->
+    <ImageView
+        android:id="@+id/imgProfile"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/profile_circle_bg"
+        android:scaleType="centerCrop"
+        android:padding="0dp"
+        android:clipToOutline="true"
+        android:src="@drawable/baseline_face_24" />
+
+    <!-- Όνομα χρήστη / τίτλος chat -->
+    <TextView
+        android:id="@+id/txtChatTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/btnBack"
+        android:layout_alignTop="@id/btnBack"
+        android:text="User Messages"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:textColor="@android:color/white" />
+
+    <!-- RecyclerView για όλα τα μηνύματα του χρήστη -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvUserMessages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/btnBack"
+        android:layout_marginTop="8dp"
+        android:padding="12dp" />
+
+</RelativeLayout>
