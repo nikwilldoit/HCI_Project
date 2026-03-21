@@ -29,6 +29,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +79,7 @@ public class NewReviewActivity extends AppCompatActivity {
 
         profileMenuHelper = new ProfileMenuHelper(this, userId, userFullName, userEmail, userPhone);
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         BackButtonHelper.attach(this, R.id.btnBack);
 
@@ -98,6 +101,16 @@ public class NewReviewActivity extends AppCompatActivity {
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
     }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
+    }
+
     private void startSpeechRecognizer() {
         int REQUEST_SPEECH_RECOGNIZER = 3000;
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);

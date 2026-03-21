@@ -26,6 +26,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -115,6 +117,7 @@ public class ReviewDetailActivity extends AppCompatActivity {
                 userPhone
         );
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         BackButtonHelper.attachToGoForum(
                 this,
@@ -162,6 +165,15 @@ public class ReviewDetailActivity extends AppCompatActivity {
             if (cText.isEmpty()) return;
             postComment(cText);
         });
+    }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
     }
 
     private void registerView() {

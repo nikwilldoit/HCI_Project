@@ -29,6 +29,9 @@
         android:clickable="true"
         android:focusable="true"
         android:scaleType="centerCrop"
+        android:background="@drawable/profile_circle_bg"
+        android:padding="0dp"
+        android:clipToOutline="true"
         android:src="@drawable/baseline_face_24" />
 
 

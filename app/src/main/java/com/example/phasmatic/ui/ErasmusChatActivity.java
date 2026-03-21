@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -22,7 +23,10 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.ai.OpenAIChatClient;
+import com.example.phasmatic.extras.ProfileImageManager;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.util.ArrayList;
 
@@ -70,6 +74,7 @@ public class ErasmusChatActivity extends AppCompatActivity {
         );
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         txtChatTitle = findViewById(R.id.txtChatTitle);
         txtChatLog = findViewById(R.id.txtChatLog);
@@ -116,6 +121,15 @@ public class ErasmusChatActivity extends AppCompatActivity {
         });
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+    }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
     }
 
     private void startSpeechRecognizer() {

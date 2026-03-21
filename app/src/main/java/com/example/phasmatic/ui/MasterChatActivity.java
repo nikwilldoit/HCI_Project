@@ -22,6 +22,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.ai.OpenAIChatClient;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.util.ArrayList;
 
@@ -70,6 +72,7 @@ public class MasterChatActivity extends AppCompatActivity {
         );
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         txtChatTitle = findViewById(R.id.txtChatTitle);
         txtChatLog = findViewById(R.id.txtChatLog);
@@ -116,6 +119,15 @@ public class MasterChatActivity extends AppCompatActivity {
         });
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+    }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
     }
 
     private void startSpeechRecognizer() {

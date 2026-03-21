@@ -1,5 +1,6 @@
 package com.example.phasmatic.ui.Forum;
 
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ReviewComment;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +61,13 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
         h.txtCommentUser.setText(name);
         h.txtCommentAcademic.setText(academic != null ? academic : "");
         h.txtCommentText.setText(c.comment_text != null ? c.comment_text : "");
+
+        Bitmap bitmap = ProfileImageManager.loadBitmap(h.itemView.getContext(), c.user_id);
+        if (bitmap != null) {
+            h.imgCommentUser.setImageBitmap(bitmap);
+        } else {
+            h.imgCommentUser.setImageResource(R.drawable.baseline_face_24);
+        }
 
         h.imgCommentUser.setOnClickListener(v -> {
             if (userClickListener != null) userClickListener.onUserClick(c);

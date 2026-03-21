@@ -4,12 +4,12 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.graphics.Bitmap;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
-import com.example.phasmatic.data.model.UserInfo;
+import com.example.phasmatic.extras.ProfileImageManager;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class PublicProfileActivity extends AppCompatActivity {
@@ -49,13 +49,21 @@ public class PublicProfileActivity extends AppCompatActivity {
         if (userId != null && !userId.isEmpty()) {
             loadUserBasic();
             loadUserInfo();
+            Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+            if (bitmap != null) {
+                imgProfilePhoto.setImageBitmap(bitmap);
+            } else {
+                imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
+            }
         }
     }
+
 
     private void loadUserBasic() {
         FirebaseDatabase db = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
+
         db.getReference("users").child(userId).get()
                 .addOnSuccessListener(snapshot -> {
                     if (!snapshot.exists()) return;
@@ -63,18 +71,10 @@ public class PublicProfileActivity extends AppCompatActivity {
                     String fullName = snapshot.child("fullName").getValue(String.class);
                     String email = snapshot.child("email").getValue(String.class);
                     String phone = snapshot.child("phoneNumber").getValue(String.class);
-                    String profileImageUrl = snapshot.child("profileImageUrl").getValue(String.class);
 
                     txtFullName.setText(fullName != null ? fullName : "-");
                     txtEmail.setText(email != null ? email : "-");
                     txtPhone.setText(phone != null ? phone : "-");
-
-                    if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-                        Glide.with(this)
-                                .load(profileImageUrl)
-                                .placeholder(R.drawable.baseline_face_24)
-                                .into(imgProfilePhoto);
-                    }
                 });
     }
 
@@ -82,6 +82,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         FirebaseDatabase db = FirebaseDatabase.getInstance(
                 "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
         );
+
         db.getReference("user_info").child(userId).get()
                 .addOnSuccessListener(snapshot -> {
                     if (!snapshot.exists()) return;
@@ -101,8 +102,7 @@ public class PublicProfileActivity extends AppCompatActivity {
                     txtLanguages.setText("Languages: " + (languages != null ? languages : "-"));
                     txtGpa.setText("GPA: " + (gpa != null ? gpa : 0.0));
                     txtBudget.setText("Budget per year: " + (budgetPerYear != null ? budgetPerYear : 0.0));
-                    txtYearOfStudies.setText("Year of studies: " +
-                            (yearOfStudies != null ? yearOfStudies : 0));
+                    txtYearOfStudies.setText("Year of studies: " + (yearOfStudies != null ? yearOfStudies : 0));
                     txtAdvisorType.setText("Advisor type: " + (advisorType != null ? advisorType : "-"));
                 });
     }

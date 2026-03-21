@@ -24,6 +24,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import android.graphics.Bitmap;
+import com.example.phasmatic.extras.ProfileImageManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +74,7 @@ public class ForumActivity extends AppCompatActivity {
         imgProfile = findViewById(R.id.imgProfile);
         profileMenuHelper = new ProfileMenuHelper(this, userId, userFullName, userEmail, userPhone);
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         BackButtonHelper.attachToGoModeSelection(this, R.id.btnBack, userId, userFullName, userEmail, userPhone);
         btnBack = findViewById(R.id.btnBack);
@@ -118,6 +121,15 @@ public class ForumActivity extends AppCompatActivity {
         loadReviews();
 
         findViewById(R.id.fabAddReview).setOnClickListener(v -> openAddReview());
+    }
+
+    private void loadProfilePhoto() {
+        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+        if (bitmap != null) {
+            imgProfile.setImageBitmap(bitmap);
+        } else {
+            imgProfile.setImageResource(R.drawable.baseline_face_24);
+        }
     }
 
     private void setupDropdowns() {
