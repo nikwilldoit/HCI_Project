@@ -7,6 +7,7 @@ import android.view.View;
 import androidx.appcompat.widget.PopupMenu;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.ui.Chat.UsersActivity;
 import com.example.phasmatic.ui.LoginActivity;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -48,8 +49,13 @@ public class ProfileMenuHelper {
             if (id == R.id.menu_account) {
                 openAccountActivity();
                 return true;
-            } else if (id == R.id.menu_logout) {
+            }
+            else if (id == R.id.menu_logout) {
                 logout();
+                return true;
+            }
+            else if (id == R.id.menu_chat) {
+                go_to_chats();
                 return true;
             }
             return false;
@@ -70,6 +76,16 @@ public class ProfileMenuHelper {
     private void logout() {
         Intent i = new Intent(activity, LoginActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        activity.startActivity(i);
+        activity.finish();
+    }
+
+    private void go_to_chats() {
+        Intent i = new Intent(activity, UsersActivity.class);
+        i.putExtra("userId", userId);
+        i.putExtra("userFullName", userFullName);
+        i.putExtra("userEmail", userEmail);
+        i.putExtra("userPhone", userPhone);
         activity.startActivity(i);
         activity.finish();
     }

@@ -1,5 +1,6 @@
 package com.example.phasmatic.ui.Forum;
 
+import static com.example.phasmatic.ui.BackButtonHelper.attachToGoChat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ForumReview;
 import com.example.phasmatic.ui.BackButtonHelper;
+import com.example.phasmatic.ui.Chat.ChatActivity;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.database.DataSnapshot;
@@ -103,6 +105,9 @@ public class ForumActivity extends AppCompatActivity {
             startActivity(i);
 
         });
+
+        //attachToGoChat()
+
         rvReviews.setAdapter(adapter);
 
 

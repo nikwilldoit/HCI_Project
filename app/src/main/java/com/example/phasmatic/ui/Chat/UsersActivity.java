@@ -3,9 +3,11 @@ package com.example.phasmatic.ui.Chat;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,58 +15,73 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.Conversation;
 import com.example.phasmatic.extras.ProfileImageManager;
+import com.example.phasmatic.ui.BackButtonHelper;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class UsersActivity extends AppCompatActivity {
 
-    private ImageButton btnBack;
-    private ImageView imgProfile;
-    private RecyclerView recyclerView;
-
-    private ProfileMenuHelper profileMenuHelper;
-
-    private DatabaseReference conversationsRef;
+    private RecyclerView rvConversations;
+    private final ArrayList<Conversation> conversations = new ArrayList<>();
+    private ConversationsAdapter adapter;
 
     private String userId, userFullName, userEmail, userPhone;
 
-    private List<Conversation> conversationsList = new ArrayList<>();
+    private ImageButton btnBack;
 
-    private ConversationsAdapter adapter;
+    ImageView imgProfile;
+    private ProfileMenuHelper profileMenuHelper;
+
+    private String currentUid;
+    private final FirebaseDatabase db = FirebaseDatabase.getInstance(
+            "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+    );
+    private DatabaseReference conversationsRef, usersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_impl);
+        setContentView(R.layout.activity_users);
 
         Intent intent = getIntent();
         userId = intent.getStringExtra("userId");
         userFullName = intent.getStringExtra("userFullName");
         userEmail = intent.getStringExtra("userEmail");
         userPhone = intent.getStringExtra("userPhone");
-        btnBack = findViewById(R.id.btnBack);
+
         imgProfile = findViewById(R.id.imgProfile);
-        recyclerView = findViewById(R.id.rvUserMessages);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        BackButtonHelper.attachToGoModeSelection(this, R.id.btnBack, userId,userFullName, userEmail, userPhone);
+//        btnBack.setOnClickListener(v -> finish());
 
-        adapter = new ConversationsAdapter(conversationsList, userId, this);
-        recyclerView.setAdapter(adapter);
-
-        conversationsRef = FirebaseDatabase.getInstance(
-                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
-        ).getReference("conversations");
-
-        profileMenuHelper = new ProfileMenuHelper(this, userId, userFullName, userEmail, userPhone);
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
-
         loadProfilePhoto();
-        loadConversations();
 
-        btnBack.setOnClickListener(v -> onBackPressed());
+        currentUid = getIntent().getStringExtra("userId");
+
+        rvConversations = findViewById(R.id.rvConversations);
+        rvConversations.setLayoutManager(new LinearLayoutManager(this));
+
+        conversationsRef = db.getReference("conversations");
+        usersRef = db.getReference("users");
+
+        adapter = new ConversationsAdapter(conversations, currentUid, conversation -> {
+            String otherUid = currentUid.equals(conversation.leftUser_id)
+                    ? conversation.rightUser_id
+                    : conversation.leftUser_id;
+
+            loadUserNameAndOpenChat(otherUid);
+        });
+
+        rvConversations.setAdapter(adapter);
+
+        loadConversations();
     }
 
     private void loadProfilePhoto() {
@@ -79,28 +96,21 @@ public class UsersActivity extends AppCompatActivity {
     private void loadConversations() {
         conversationsRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                conversationsList.clear();
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                conversations.clear();
 
-                for (DataSnapshot child : snapshot.getChildren()) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    Conversation c = ds.getValue(Conversation.class);
+                    if (c == null) continue;
 
-                    String left = child.child("leftUser_id").getValue(String.class);
-                    String right = child.child("rightUser_id").getValue(String.class);
-
-                    if (userId != null && (userId.equals(left) || userId.equals(right))) {
-
-                        Conversation c = new Conversation();
-                        c.id = child.getKey();
-                        c.leftUser_id = left;
-                        c.rightUser_id = right;
-                        c.lastMessage = child.child("lastMessage").getValue(String.class);
-                        c.timeLastMessage = child.child("timeLastMessage").getValue(String.class);
-
-                        conversationsList.add(c);
+                    if (!TextUtils.isEmpty(currentUid) &&
+                            (currentUid.equals(c.leftUser_id) || currentUid.equals(c.rightUser_id))) {
+                        conversations.add(c);
                     }
                 }
 
-                conversationsList.sort((a, b) -> {
+                //sort me vash to time last message
+                conversations.sort((a, b) -> {
                     if (a.timeLastMessage == null || b.timeLastMessage == null) return 0;
                     return b.timeLastMessage.compareTo(a.timeLastMessage);
                 });
@@ -109,7 +119,24 @@ public class UsersActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+    }
+
+    private void loadUserNameAndOpenChat(String otherUid) {
+        usersRef.child(otherUid).get().addOnSuccessListener(snapshot -> {
+            String otherName = "User";
+            if (snapshot.exists()) {
+                String name = snapshot.child("fullName").getValue(String.class);
+                if (!TextUtils.isEmpty(name)) otherName = name;
+            }
+
+
+            Intent i = new Intent(this, ChatActivity.class);
+            i.putExtra("userId", currentUid);
+            i.putExtra("otherUid", otherUid);
+            i.putExtra("otherName", otherName);
+            startActivity(i);
         });
     }
 }
