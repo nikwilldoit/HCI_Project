@@ -1,5 +1,6 @@
 package com.example.phasmatic.ui.Chat;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -54,8 +55,6 @@ public class UsersActivity extends AppCompatActivity {
         userEmail    = intent.getStringExtra("userEmail");
         userPhone    = intent.getStringExtra("userPhone");
 
-        currentUid = userId;
-
         imgProfile = findViewById(R.id.imgProfile);
         btnBack    = findViewById(R.id.btnBack);
 
@@ -78,8 +77,13 @@ public class UsersActivity extends AppCompatActivity {
         conversationsRef = db.getReference("conversations");
         usersRef         = db.getReference("users");
 
-        adapter = new ConversationsAdapter(conversations, currentUid, conversation -> {
-            String otherUid = conversation.leftUser_id; // left = allos
+        adapter = new ConversationsAdapter(conversations, userId, conversation -> {
+            String otherUid;
+            if (userId.equals(conversation.leftUser_id)) {
+                otherUid = conversation.rightUser_id;
+            } else {
+                otherUid = conversation.leftUser_id;
+            }
             loadUserNameAndOpenChat(otherUid);
         });
 
@@ -99,6 +103,7 @@ public class UsersActivity extends AppCompatActivity {
 
     private void loadConversations() {
         conversationsRef.addValueEventListener(new ValueEventListener() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 conversations.clear();
@@ -107,8 +112,8 @@ public class UsersActivity extends AppCompatActivity {
                     Conversation c = ds.getValue(Conversation.class);
                     if (c == null) continue;
 
-                    if (!TextUtils.isEmpty(currentUid) &&
-                            (currentUid.equals(c.leftUser_id) || currentUid.equals(c.rightUser_id))) {
+                    if (!TextUtils.isEmpty(userId) &&
+                            (userId.equals(c.leftUser_id) || userId.equals(c.rightUser_id))) {
                         conversations.add(c);
                     }
                 }
@@ -135,7 +140,7 @@ public class UsersActivity extends AppCompatActivity {
             }
 
             Intent i = new Intent(this, ChatActivity.class);
-            i.putExtra("userId", currentUid);
+            i.putExtra("userId", userId);
             i.putExtra("otherUid", otherUid);
             i.putExtra("otherName", otherName);
             i.putExtra("userEmail", userEmail);

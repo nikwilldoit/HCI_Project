@@ -47,7 +47,12 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         Conversation c = list.get(position);
 
         // logged in = rightUser_id, άλλος = leftUser_id
-        String otherUid = c.leftUser_id;
+        String otherUid;
+        if (currentUid.equals(c.leftUser_id)) {
+            otherUid = c.rightUser_id;
+        } else {
+            otherUid = c.leftUser_id;
+        }
 
         holder.txtLastMessage.setText(c.lastMessage != null ? c.lastMessage : "");
         holder.txtTime.setText(c.timeLastMessage != null ? c.timeLastMessage : "");
