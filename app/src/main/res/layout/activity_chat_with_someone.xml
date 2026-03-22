@@ -34,7 +34,6 @@
         android:clipToOutline="true"
         android:src="@drawable/baseline_face_24" />
 
-    <!-- Όνομα συνομιλητή -->
     <TextView
         android:id="@+id/txtChatWith"
         android:layout_width="wrap_content"
@@ -46,16 +45,15 @@
         android:textColor="@android:color/white"
         android:textStyle="bold"/>
 
-    <!-- RecyclerView για τα μηνύματα -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMessages"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/layoutSendMessage"
         android:padding="12dp"
+        android:layout_marginTop="72dp"
         android:clipToPadding="false"/>
 
-    <!-- Περιοχή για πληκτρολόγιο και send button -->
     <LinearLayout
         android:id="@+id/layoutSendMessage"
         android:layout_width="match_parent"

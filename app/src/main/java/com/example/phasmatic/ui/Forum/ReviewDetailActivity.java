@@ -152,7 +152,16 @@ public class ReviewDetailActivity extends AppCompatActivity {
                 userAcademicMap,
                 comment -> {
                     Intent i = new Intent(ReviewDetailActivity.this, PublicProfileActivity.class);
+                    //currentUserId = o xrhsths pou einai logged-in (userId tou ReviewDetailActivity)
+                    i.putExtra("currentUserId", userId);
+                    //userId = o xrhsths tou comment pou vlepeis (profileUid sto PublicProfile)
                     i.putExtra("userId", comment.user_id);
+
+                    //plirofories tou logged-in gia menu/profile
+                    i.putExtra("userFullName", userFullName);
+                    i.putExtra("userEmail", userEmail);
+                    i.putExtra("userPhone", userPhone);
+
                     startActivity(i);
                 }
         );

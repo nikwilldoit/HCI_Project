@@ -1,9 +1,7 @@
 package com.example.phasmatic.ui.Chat;
 
-import static com.example.phasmatic.ui.BackButtonHelper.attachToGoChat;
 import static com.example.phasmatic.ui.BackButtonHelper.attachToGoChats;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,18 +18,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.Message;
 import com.example.phasmatic.extras.ProfileImageManager;
-import com.example.phasmatic.ui.BackButtonHelper;
+import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
-
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity {
@@ -40,7 +37,6 @@ public class ChatActivity extends AppCompatActivity {
     private TextView txtChatWith;
     private EditText etMessage;
     private RecyclerView rvMessages;
-
     private ImageView imgProfile;
 
     private final ArrayList<Message> messages = new ArrayList<>();
@@ -65,18 +61,16 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_with_someone);
 
-        btnBack = findViewById(R.id.btnBack);
-        btnSend = findViewById(R.id.btnSend);
+        btnBack     = findViewById(R.id.btnBack);
+        btnSend     = findViewById(R.id.btnSend);
         txtChatWith = findViewById(R.id.txtChatWith);
-        etMessage = findViewById(R.id.etMessage);
-        rvMessages = findViewById(R.id.rvMessages);
-
-        imgProfile = findViewById(R.id.imgProfile);
+        etMessage   = findViewById(R.id.etMessage);
+        rvMessages  = findViewById(R.id.rvMessages);
+        imgProfile  = findViewById(R.id.imgProfile);
 
         currentUid = getIntent().getStringExtra("userId");
-        otherUid = getIntent().getStringExtra("otherUid");
-        otherName = getIntent().getStringExtra("otherName");
-
+        otherUid   = getIntent().getStringExtra("otherUid");
+        otherName  = getIntent().getStringExtra("otherName");
         String userEmail = getIntent().getStringExtra("userEmail");
         String userPhone = getIntent().getStringExtra("userPhone");
 
@@ -90,11 +84,10 @@ public class ChatActivity extends AppCompatActivity {
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
 
-
         txtChatWith.setText(otherName != null ? otherName : "Chat");
 
         conversationsRef = db.getReference("conversations");
-        messagesRef = db.getReference("messages");
+        messagesRef      = db.getReference("messages");
 
         adapter = new MessagesAdapter(messages, currentUid);
         LinearLayoutManager lm = new LinearLayoutManager(this);
@@ -107,9 +100,7 @@ public class ChatActivity extends AppCompatActivity {
         btnSend.setOnClickListener(v -> sendMessage());
 
         loadProfilePhoto();
-
         findOrCreateConversation();
-
     }
 
     private void loadProfilePhoto() {
@@ -121,12 +112,13 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    //den ftiaxnei neo an uparxei hdh
     private void findOrCreateConversation() {
         conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    String left = ds.child("leftUser_id").getValue(String.class);
+                    String left  = ds.child("leftUser_id").getValue(String.class);
                     String right = ds.child("rightUser_id").getValue(String.class);
 
                     boolean match = left != null && right != null &&
@@ -152,11 +144,12 @@ public class ChatActivity extends AppCompatActivity {
         conversationKey = newRef.getKey();
         if (conversationKey == null) return;
 
-        java.util.HashMap<String, Object> conv = new java.util.HashMap<>();
+        HashMap<String, Object> conv = new HashMap<>();
         conv.put("id", conversationKey);
         conv.put("lastMessage", "");
-        conv.put("leftUser_id", currentUid);
-        conv.put("rightUser_id", otherUid);
+        // currentUid = logged in (right), otherUid = allos (left)
+        conv.put("leftUser_id", otherUid);
+        conv.put("rightUser_id", currentUid);
         conv.put("timeLastMessage", nowString());
 
         newRef.setValue(conv).addOnSuccessListener(unused -> loadMessages());
@@ -173,12 +166,12 @@ public class ChatActivity extends AppCompatActivity {
                     if (conversationKey == null || convId == null || !conversationKey.equals(convId)) continue;
 
                     Message m = new Message();
-                    m.id = ds.child("id").getValue(String.class);
-                    m.conversationId = convId;
-                    m.sender_id = ds.child("sender_id").getValue(String.class);
-                    m.receiver_id = ds.child("receiver_id").getValue(String.class);
-                    m.messageText = ds.child("messageText").getValue(String.class);
-                    m.timeMessage = ds.child("timeMessage").getValue(String.class);
+                    m.id            = ds.child("id").getValue(String.class);
+                    m.conversationId= convId;
+                    m.sender_id     = ds.child("sender_id").getValue(String.class);
+                    m.receiver_id   = ds.child("receiver_id").getValue(String.class);
+                    m.messageText   = ds.child("messageText").getValue(String.class);
+                    m.timeMessage   = ds.child("timeMessage").getValue(String.class);
                     m.statusOfMessage = ds.child("statusOfMessage").getValue(String.class);
 
                     messages.add(m);
@@ -190,7 +183,9 @@ public class ChatActivity extends AppCompatActivity {
                 });
 
                 adapter.notifyDataSetChanged();
-                if (!messages.isEmpty()) rvMessages.scrollToPosition(messages.size() - 1);
+                if (!messages.isEmpty()) {
+                    rvMessages.scrollToPosition(messages.size() - 1);
+                }
             }
 
             @Override
@@ -207,7 +202,7 @@ public class ChatActivity extends AppCompatActivity {
         String key = newMsgRef.getKey();
         if (key == null) return;
 
-        java.util.HashMap<String, Object> msg = new java.util.HashMap<>();
+        HashMap<String, Object> msg = new HashMap<>();
         msg.put("id", key);
         msg.put("conversationId", conversationKey);
         msg.put("sender_id", currentUid);
@@ -224,6 +219,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private String nowString() {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                .format(new Date());
     }
 }

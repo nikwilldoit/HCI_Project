@@ -7,6 +7,8 @@ public class Conversation {
     public String rightUser_id;
     public String timeLastMessage;
 
+    public String otherName;
+
     public Conversation() {
     }
 
