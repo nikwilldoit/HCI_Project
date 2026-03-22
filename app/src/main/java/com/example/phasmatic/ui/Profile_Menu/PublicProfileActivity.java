@@ -11,17 +11,20 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.phasmatic.R;
 import com.example.phasmatic.extras.ProfileImageManager;
-import com.example.phasmatic.ui.BackButtonHelper;
 import com.example.phasmatic.ui.Chat.ChatActivity;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class PublicProfileActivity extends AppCompatActivity {
 
-    private String profileUid;    // uid tou user pou vlepeis
-    private String currentUserId; // uid tou logged-in user
-    private String loadedFullName = null; //full name tou user
+    // uid tou user pou vlepeis (other)
+    private String profileUid;
+    // uid tou logged-in user
+    private String currentUserId;
+    // full name tou user pou vlepeis
+    private String loadedFullName = null;
 
-    private String userId, userFullName, userEmail, userPhone;
+    // plirofories tou LOGGED-IN user (prepei na erxontai me alla extras)
+    private String userFullName, userEmail, userPhone;
 
     private ImageButton btnBack, btnChat;
     private ImageView imgProfilePhoto;
@@ -35,29 +38,30 @@ public class PublicProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_public_profile);
 
         Intent intent = getIntent();
-        profileUid    = intent.getStringExtra("userId");       //user pou vlepeis
-        currentUserId = intent.getStringExtra("currentUserId"); //logged-in user
 
-        btnBack        = findViewById(R.id.btnBack);
-        btnChat        = findViewById(R.id.btnChat);
-        imgProfilePhoto = findViewById(R.id.imgProfilePhoto);
-        txtFullName    = findViewById(R.id.txtFullName);
-        txtEmail       = findViewById(R.id.txtEmail);
-        txtPhone       = findViewById(R.id.txtPhone);
-        txtUniversity  = findViewById(R.id.txtUniversity);
-        txtAcademicLevel = findViewById(R.id.txtAcademicLevel);
-        txtField       = findViewById(R.id.txtField);
-        txtLanguages   = findViewById(R.id.txtLanguages);
-        txtGpa         = findViewById(R.id.txtGpa);
-        txtBudget      = findViewById(R.id.txtBudget);
-        txtYearOfStudies = findViewById(R.id.txtYearOfStudies);
-        txtAdvisorType = findViewById(R.id.txtAdvisorType);
+        // PROSOXH: profileUid = o allos, currentUserId = logged-in
+        profileUid    = intent.getStringExtra("userId");        // other user
+        currentUserId = intent.getStringExtra("currentUserId"); // logged-in
 
-
-        userId = intent.getStringExtra("userId");
+        // info tou logged-in user gia menu κλπ
         userFullName = intent.getStringExtra("userFullName");
-        userEmail = intent.getStringExtra("userEmail");
-        userPhone = intent.getStringExtra("userPhone");
+        userEmail    = intent.getStringExtra("userEmail");
+        userPhone    = intent.getStringExtra("userPhone");
+
+        btnBack         = findViewById(R.id.btnBack);
+        btnChat         = findViewById(R.id.btnChat);
+        imgProfilePhoto = findViewById(R.id.imgProfilePhoto);
+        txtFullName     = findViewById(R.id.txtFullName);
+        txtEmail        = findViewById(R.id.txtEmail);
+        txtPhone        = findViewById(R.id.txtPhone);
+        txtUniversity   = findViewById(R.id.txtUniversity);
+        txtAcademicLevel= findViewById(R.id.txtAcademicLevel);
+        txtField        = findViewById(R.id.txtField);
+        txtLanguages    = findViewById(R.id.txtLanguages);
+        txtGpa          = findViewById(R.id.txtGpa);
+        txtBudget       = findViewById(R.id.txtBudget);
+        txtYearOfStudies= findViewById(R.id.txtYearOfStudies);
+        txtAdvisorType  = findViewById(R.id.txtAdvisorType);
 
         btnBack.setOnClickListener(v -> onBackPressed());
 
@@ -70,15 +74,22 @@ public class PublicProfileActivity extends AppCompatActivity {
         }
 
 
-        BackButtonHelper.attachToGoChat(
-                this,
-                R.id.btnChat,
-                currentUserId,
-                profileUid,
-                userFullName,
-                userEmail,
-                userPhone
-        );
+        btnChat.setOnClickListener(v -> {
+            android.util.Log.d("PublicProfile", "Chat clicked, currentUserId=" + currentUserId + ", profileUid=" + profileUid);
+            if (currentUserId == null || profileUid == null) return;
+
+            Intent i = new Intent(PublicProfileActivity.this, ChatActivity.class);
+            i.putExtra("userId", currentUserId);   //logged-in
+            i.putExtra("otherUid", profileUid);    //allos
+
+            String nameForChat = loadedFullName != null
+                    ? loadedFullName
+                    : txtFullName.getText().toString().trim();
+            i.putExtra("otherName", nameForChat);
+            i.putExtra("userEmail", userEmail);
+            i.putExtra("userPhone", userPhone);
+            startActivity(i);
+        });
 
     }
 
@@ -93,7 +104,7 @@ public class PublicProfileActivity extends AppCompatActivity {
                     String email    = snapshot.child("email").getValue(String.class);
                     String phone    = snapshot.child("phoneNumber").getValue(String.class);
 
-                    loadedFullName = fullName; //apothikeush gia th sunomilia
+                    loadedFullName = fullName;
                     txtFullName.setText(fullName != null ? fullName : "-");
                     txtEmail.setText(email != null ? email : "-");
                     txtPhone.setText(phone != null ? phone : "-");

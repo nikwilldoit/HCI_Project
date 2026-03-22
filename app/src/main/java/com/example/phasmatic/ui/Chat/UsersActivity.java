@@ -34,8 +34,7 @@ public class UsersActivity extends AppCompatActivity {
     private String userId, userFullName, userEmail, userPhone;
 
     private ImageButton btnBack;
-
-    ImageView imgProfile;
+    private ImageView imgProfile;
     private ProfileMenuHelper profileMenuHelper;
 
     private String currentUid;
@@ -50,15 +49,17 @@ public class UsersActivity extends AppCompatActivity {
         setContentView(R.layout.activity_users);
 
         Intent intent = getIntent();
-        userId = intent.getStringExtra("userId");
+        userId       = intent.getStringExtra("userId");
         userFullName = intent.getStringExtra("userFullName");
-        userEmail = intent.getStringExtra("userEmail");
-        userPhone = intent.getStringExtra("userPhone");
+        userEmail    = intent.getStringExtra("userEmail");
+        userPhone    = intent.getStringExtra("userPhone");
+
+        currentUid = userId;
 
         imgProfile = findViewById(R.id.imgProfile);
+        btnBack    = findViewById(R.id.btnBack);
 
-        BackButtonHelper.attachToGoModeSelection(this, R.id.btnBack, userId,userFullName, userEmail, userPhone);
-
+        BackButtonHelper.attachToGoModeSelection(this, R.id.btnBack, userId, userFullName, userEmail, userPhone);
 
         profileMenuHelper = new ProfileMenuHelper(
                 this,
@@ -71,19 +72,14 @@ public class UsersActivity extends AppCompatActivity {
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
         loadProfilePhoto();
 
-        currentUid = getIntent().getStringExtra("userId");
-
         rvConversations = findViewById(R.id.rvConversations);
         rvConversations.setLayoutManager(new LinearLayoutManager(this));
 
         conversationsRef = db.getReference("conversations");
-        usersRef = db.getReference("users");
+        usersRef         = db.getReference("users");
 
         adapter = new ConversationsAdapter(conversations, currentUid, conversation -> {
-            String otherUid = currentUid.equals(conversation.leftUser_id)
-                    ? conversation.rightUser_id
-                    : conversation.leftUser_id;
-
+            String otherUid = conversation.leftUser_id; // left = allos
             loadUserNameAndOpenChat(otherUid);
         });
 
@@ -117,7 +113,6 @@ public class UsersActivity extends AppCompatActivity {
                     }
                 }
 
-                //sort me vash to time last message
                 conversations.sort((a, b) -> {
                     if (a.timeLastMessage == null || b.timeLastMessage == null) return 0;
                     return b.timeLastMessage.compareTo(a.timeLastMessage);
@@ -139,11 +134,12 @@ public class UsersActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(name)) otherName = name;
             }
 
-
             Intent i = new Intent(this, ChatActivity.class);
             i.putExtra("userId", currentUid);
             i.putExtra("otherUid", otherUid);
             i.putExtra("otherName", otherName);
+            i.putExtra("userEmail", userEmail);
+            i.putExtra("userPhone", userPhone);
             startActivity(i);
         });
     }

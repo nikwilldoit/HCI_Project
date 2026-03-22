@@ -1,6 +1,5 @@
 package com.example.phasmatic.ui.Chat;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +11,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.Conversation;
 import com.example.phasmatic.data.model.User;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -34,20 +37,46 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_conversation, parent, false);
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_conversation, parent, false);
         return new VH(v);
     }
 
-    // emfanizei ton user sto chat
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         Conversation c = list.get(position);
 
+        // logged in = rightUser_id, άλλος = leftUser_id
+        String otherUid = c.leftUser_id;
 
-
-        holder.txtName.setText("PRODROMOS");
         holder.txtLastMessage.setText(c.lastMessage != null ? c.lastMessage : "");
         holder.txtTime.setText(c.timeLastMessage != null ? c.timeLastMessage : "");
+
+        if (otherUid == null || otherUid.isEmpty()) {
+            holder.txtName.setText("User");
+        } else {
+            holder.txtName.setText("Loading...");
+            FirebaseDatabase.getInstance(
+                            "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+                    ).getReference("users")
+                    .child(otherUid)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            User user = snapshot.getValue(User.class);
+                            if (user != null && user.getFullName() != null) {
+                                holder.txtName.setText(user.getFullName());
+                            } else {
+                                holder.txtName.setText("User");
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            holder.txtName.setText("User");
+                        }
+                    });
+        }
 
         holder.itemView.setOnClickListener(v -> listener.onClick(c));
     }
@@ -61,9 +90,9 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         TextView txtName, txtLastMessage, txtTime;
         VH(@NonNull View itemView) {
             super(itemView);
-            txtName = itemView.findViewById(R.id.txtName);
+            txtName        = itemView.findViewById(R.id.txtName);
             txtLastMessage = itemView.findViewById(R.id.txtLastMessage);
-            txtTime = itemView.findViewById(R.id.txtTime);
+            txtTime        = itemView.findViewById(R.id.txtTime);
         }
     }
 }

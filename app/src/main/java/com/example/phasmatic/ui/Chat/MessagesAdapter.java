@@ -32,7 +32,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return (currentUid != null && currentUid.equals(senderId)) ? TYPE_USER : TYPE_OTHER;
     }
 
-
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

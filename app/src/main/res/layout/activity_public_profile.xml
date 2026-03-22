@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="#FF1E3A5F">
 
-    <!-- Scrollable content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -16,7 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Header με πίσω κουμπί και τίτλο -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -195,7 +193,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Floating βελάκι κάτω δεξιά -->
     <ImageButton
         android:id="@+id/btnChat"
         android:layout_width="60dp"
@@ -204,6 +201,6 @@
         android:layout_margin="16dp"
         android:src="@drawable/outline_arrow_circle_right_24"
         android:contentDescription="Next"
-        android:tint="#FF1E3A5F"
-        android:scaleType="centerInside"/>
+        android:scaleType="centerInside"
+        app:tint="#FF1E3A5F" />
 </FrameLayout>
