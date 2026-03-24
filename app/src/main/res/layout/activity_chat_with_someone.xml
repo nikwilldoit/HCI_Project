@@ -82,6 +82,15 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_send"
             android:contentDescription="Send"/>
+
+        <ImageButton
+            android:id="@+id/btnVoice"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/baseline_mic_24"
+            android:contentDescription="Send"/>
     </LinearLayout>
 
 </RelativeLayout>

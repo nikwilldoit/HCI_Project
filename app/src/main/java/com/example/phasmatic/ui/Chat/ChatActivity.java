@@ -2,13 +2,17 @@ package com.example.phasmatic.ui.Chat;
 
 import static com.example.phasmatic.ui.BackButtonHelper.attachToGoChats;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +37,7 @@ import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private ImageButton btnBack, btnSend;
+    private ImageButton btnBack, btnSend, btnVoice;
     private TextView txtChatWith;
     private EditText etMessage;
     private RecyclerView rvMessages;
@@ -63,6 +67,7 @@ public class ChatActivity extends AppCompatActivity {
 
         btnBack     = findViewById(R.id.btnBack);
         btnSend     = findViewById(R.id.btnSend);
+        btnVoice = findViewById(R.id.btnVoice);
         txtChatWith = findViewById(R.id.txtChatWith);
         etMessage   = findViewById(R.id.etMessage);
         rvMessages  = findViewById(R.id.rvMessages);
@@ -101,6 +106,26 @@ public class ChatActivity extends AppCompatActivity {
 
         loadProfilePhoto();
         findOrCreateConversation();
+
+        btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+    }
+
+    private void startSpeechRecognizer() {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-GR");
+
+        intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "el-GR");
+
+
+        try {
+            startActivityForResult(intent, REQUEST_SPEECH_RECOGNIZER);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Η αναγνώριση φωνής δεν υποστηρίζεται στη συσκευή σας", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadProfilePhoto() {
