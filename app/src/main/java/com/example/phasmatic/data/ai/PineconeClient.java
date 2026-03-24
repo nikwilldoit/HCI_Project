@@ -1,5 +1,7 @@
 package com.example.phasmatic.data.ai;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
@@ -17,8 +19,8 @@ import okhttp3.Response;
 
 public class PineconeClient {
 
-    private static final String BASE_URL = "https://decyra-index-trb4i0f.svc.aped-4627-b74a.pinecone.io/query";
-    private static final String API_KEY = "pcsk_4VgA1U_Q3LyJtAPTnLqvDN1pbeTJ5Rr6DdBYVy1Nu2BNNMLNNG3JN8vzMZEvQL6oL2frBY";
+    private static final String BASE_URL = "https://decyra-better-index-trb4i0f.svc.aped-4627-b74a.pinecone.io/query";
+    private static final String API_KEY = "pcsk_3sKnDQ_U2HLqcoc4Dstfk3RPndnDyKL36ggcwhiaQJrCe6R9qZ2AUzufab9tZGDM5SXSTX";
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -30,8 +32,15 @@ public class PineconeClient {
     public void upsert(float[] vector, String id, JSONObject metadata) {
 
         try {
-            JSONObject body = new JSONObject();
+            String url = "https://decyra-better-index-trb4i0f.svc.aped-4627-b74a.pinecone.io/vectors/upsert";
 
+            Log.d("PINECONE", "===== UPSERT START =====");
+            Log.d("PINECONE", "URL: " + url);
+            Log.d("PINECONE", "ID: " + id);
+            Log.d("PINECONE", "Vector length: " + vector.length);
+            Log.d("PINECONE", "Metadata: " + metadata.toString());
+
+            JSONObject body = new JSONObject();
             JSONArray vectors = new JSONArray();
 
             JSONObject vec = new JSONObject();
@@ -42,19 +51,43 @@ public class PineconeClient {
             vectors.put(vec);
             body.put("vectors", vectors);
 
+            Log.d("PINECONE", "Request body: " + body.toString());
+
             Request request = new Request.Builder()
-                    .url("https://decyra-index-trb4i0f.svc.aped-4627-b74a.pinecone.io/vectors/upsert")
+                    .url(url)
                     .addHeader("Api-Key", API_KEY)
+                    .addHeader("Content-Type", "application/json")
                     .post(RequestBody.create(body.toString(),
                             MediaType.get("application/json")))
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
-                @Override public void onFailure(Call call, IOException e) {}
-                @Override public void onResponse(Call call, Response response) {}
+
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e("PINECONE", "❌ REQUEST FAILED: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+
+                    String resBody = response.body() != null
+                            ? response.body().string()
+                            : "EMPTY";
+
+                    Log.d("PINECONE", "✅ RESPONSE CODE: " + response.code());
+                    Log.d("PINECONE", "📩 RESPONSE BODY: " + resBody);
+
+                    if (!response.isSuccessful()) {
+                        Log.e("PINECONE", "❌ ERROR RESPONSE!");
+                    } else {
+                        Log.d("PINECONE", "🎉 UPSERT SUCCESS!");
+                    }
+                }
             });
 
         } catch (Exception e) {
+            Log.e("PINECONE", "❌ EXCEPTION: " + e.getMessage());
             e.printStackTrace();
         }
     }

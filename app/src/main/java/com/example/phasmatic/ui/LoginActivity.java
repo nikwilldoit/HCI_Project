@@ -80,7 +80,6 @@ public class LoginActivity extends AppCompatActivity {
         btnRegisterLog = findViewById(R.id.btnRegisterLog);
         btnFaceLogin = findViewById(R.id.btnFaceLogin);
         txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
-        loadPineCone = findViewById(R.id.btnpinecone);
 
         viewFinder = findViewById(R.id.viewFinder);
         cameraLayout = findViewById(R.id.cameraLayout);
@@ -112,16 +111,15 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             loginWithFirebase(email, password);
+
+            PineconeIndexer indexer = new PineconeIndexer(this);
+            indexer.indexPrograms();
+
         });
 
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
 
-        loadPineCone.setOnClickListener(v -> {
-            PineconeIndexer indexer = new PineconeIndexer(this);
-            indexer.indexPrograms();
-            txtDisplayInfoLog.setText("button pressed");//aftomata ftiaxnei embeddings kai stelnei sto Pinecone
-        });
     }
 
     private void loadFaceModel() {
