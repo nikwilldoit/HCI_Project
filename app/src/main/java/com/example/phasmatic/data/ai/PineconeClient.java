@@ -65,7 +65,7 @@ public class PineconeClient {
 
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.e("PINECONE", "❌ REQUEST FAILED: " + e.getMessage());
+                    Log.e("PINECONE", "REQUEST FAILED: " + e.getMessage());
                 }
 
                 @Override
@@ -75,19 +75,19 @@ public class PineconeClient {
                             ? response.body().string()
                             : "EMPTY";
 
-                    Log.d("PINECONE", "✅ RESPONSE CODE: " + response.code());
-                    Log.d("PINECONE", "📩 RESPONSE BODY: " + resBody);
+                    Log.d("PINECONE", "RESPONSE CODE: " + response.code());
+                    Log.d("PINECONE", "RESPONSE BODY: " + resBody);
 
                     if (!response.isSuccessful()) {
-                        Log.e("PINECONE", "❌ ERROR RESPONSE!");
+                        Log.e("PINECONE", "ERROR RESPONSE!");
                     } else {
-                        Log.d("PINECONE", "🎉 UPSERT SUCCESS!");
+                        Log.d("PINECONE", "UPSERT SUCCESS!");
                     }
                 }
             });
 
         } catch (Exception e) {
-            Log.e("PINECONE", "❌ EXCEPTION: " + e.getMessage());
+            Log.e("PINECONE", "EXCEPTION: " + e.getMessage());
             e.printStackTrace();
         }
     }
