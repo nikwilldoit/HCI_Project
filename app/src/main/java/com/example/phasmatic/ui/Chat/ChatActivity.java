@@ -2,12 +2,14 @@ package com.example.phasmatic.ui.Chat;
 
 import static com.example.phasmatic.ui.BackButtonHelper.attachToGoChats;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -125,6 +127,25 @@ public class ChatActivity extends AppCompatActivity {
             startActivityForResult(intent, REQUEST_SPEECH_RECOGNIZER);
         } catch (ActivityNotFoundException a) {
             Toast.makeText(getApplicationContext(), "Η αναγνώριση φωνής δεν υποστηρίζεται στη συσκευή σας", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int REQUEST_SPEECH_RECOGNIZER = 3000;
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Log.i("DEMO-REQUESTCODE", Integer.toString(requestCode));
+        Log.i("DEMO-RESULTCODE", Integer.toString(resultCode));
+
+        if (requestCode == REQUEST_SPEECH_RECOGNIZER && resultCode == Activity.RESULT_OK && data != null) {
+            ArrayList<String> text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            etMessage.setText(text.get(0));
+
+            Log.i("DEMO-ANSWER", text.get(0));
+
+        } else {
+            System.out.println("Recognizer API error");
         }
     }
 
