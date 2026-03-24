@@ -26,21 +26,29 @@ android {
                     'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
 
-    buildFeatures{
+    buildFeatures {
         viewBinding true
         mlModelBinding false
     }
+
     aaptOptions {
         noCompress "tflite"
     }
-
+    packagingOptions {
+        resources {
+            // Αγνοούμε το INDEX.LIST
+            excludes += "META-INF/INDEX.LIST"
+            // Αγνοούμε το Netty versions properties (ή παίρνουμε το πρώτο αν χρειάζεται)
+            pickFirsts += "META-INF/io.netty.versions.properties"
+        }
+    }
 }
-
 dependencies {
     implementation libs.appcompat
     implementation libs.material
@@ -65,7 +73,6 @@ dependencies {
 
     // ML Kit face detection
     implementation 'com.google.mlkit:face-detection:16.1.7'
-    implementation 'com.google.mlkit:face-detection:16.1.5'
 
     // Kotlin & Lifecycle
     implementation("androidx.concurrent:concurrent-futures-ktx:1.1.0")
@@ -80,4 +87,16 @@ dependencies {
 
     implementation "com.github.bumptech.glide:glide:4.16.0"
     annotationProcessor "com.github.bumptech.glide:compiler:4.16.0"
+
+    // Retrofit (REST API)
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+
+// OkHttp logging (debugging requests)
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+// Gson (αν δεν το έχεις ήδη implicit)
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation "io.pinecone:pinecone-client:5.1.0"
+
 }

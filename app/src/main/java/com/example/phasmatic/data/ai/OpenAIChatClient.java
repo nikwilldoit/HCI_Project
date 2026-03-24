@@ -39,6 +39,74 @@ public class OpenAIChatClient {
         );
     }
 
+    public void getEmbedding(String text, EmbeddingCallback callback) {
+
+        firebaseDb.getReference("api_keys/0/api_key")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        String apiKey = snapshot.getValue(String.class);
+
+                        try {
+                            JSONObject body = new JSONObject();
+                            body.put("model", "text-embedding-3-small");
+                            body.put("input", text);
+
+                            Request request = new Request.Builder()
+                                    .url("https://api.openai.com/v1/embeddings")
+                                    .addHeader("Authorization", "Bearer " + apiKey)
+                                    .addHeader("Content-Type", "application/json")
+                                    .post(RequestBody.create(body.toString(), JSON))
+                                    .build();
+
+                            client.newCall(request).enqueue(new Callback() {
+
+                                @Override
+                                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                                    callback.onError(e.getMessage());
+                                }
+
+                                @Override
+                                public void onResponse(@NonNull Call call, @NonNull Response response) {
+
+                                    try {
+                                        String res = response.body().string();
+
+                                        JSONObject json = new JSONObject(res);
+                                        JSONArray data = json.getJSONArray("data");
+
+                                        JSONArray embArray =
+                                                data.getJSONObject(0).getJSONArray("embedding");
+
+                                        float[] embedding = new float[embArray.length()];
+
+                                        for (int i = 0; i < embArray.length(); i++) {
+                                            embedding[i] = (float) embArray.getDouble(i);
+                                        }
+
+                                        callback.onSuccess(embedding);
+
+                                    } catch (Exception e) {
+                                        callback.onError(e.getMessage());
+                                    }
+                                }
+                            });
+
+                        } catch (Exception e) {
+                            callback.onError(e.getMessage());
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onError(error.getMessage());
+                    }
+                });
+    }
+
+
     public void sendMessage(String userMessage, ChatCallback callback) {
         Log.d("OpenAI", "sendMessage: " + userMessage);
 
@@ -53,7 +121,38 @@ public class OpenAIChatClient {
                             callback.onError("API key not found");
                             return;
                         }
-                        callOpenAI(apiKey, userMessage, callback);
+                        getEmbedding(userMessage, new EmbeddingCallback() {
+
+                            @Override
+                            public void onSuccess(float[] embedding) {
+
+                                PineconeClient pinecone = new PineconeClient();
+
+                                pinecone.query(embedding, new PineconeClient.PineconeCallback() {
+
+                                    @Override
+                                    public void onSuccess(String context) {
+
+                                        String enrichedPrompt =
+                                                "Use ONLY the following context:\n\n"
+                                                        + context +
+                                                        "\n\nUser question: " + userMessage;
+
+                                        callOpenAI(apiKey, enrichedPrompt, callback);
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+                                        callback.onError("Pinecone error: " + error);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                callback.onError("Embedding error: " + error);
+                            }
+                        });
                     }
 
                     @Override
