@@ -94,6 +94,15 @@
             android:textColor="@android:color/white" />
 
         <Button
+            android:id="@+id/btnpinecone"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="#FF2196F3"
+            android:text="LOAD DB TO PINECONE. DONT PRESS IT OFTEN"
+            android:textColor="@android:color/white" />
+
+        <Button
             android:id="@+id/btnLoginLog"
             android:layout_width="match_parent"
             android:layout_height="48dp"

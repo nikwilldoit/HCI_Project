@@ -17,14 +17,46 @@ import okhttp3.Response;
 
 public class PineconeClient {
 
-    private static final String BASE_URL = "https://....../query";
-    private static final String API_KEY = "pcsk_4cqDGB_56PZTCSRhrvUwzcUBvpQFGJpRKU12kv4tEqVayuDFhZXbLgZuKYxcDdiGi5G3kc";
+    private static final String BASE_URL = "https://decyra-index-trb4i0f.svc.aped-4627-b74a.pinecone.io/query";
+    private static final String API_KEY = "pcsk_4VgA1U_Q3LyJtAPTnLqvDN1pbeTJ5Rr6DdBYVy1Nu2BNNMLNNG3JN8vzMZEvQL6oL2frBY";
 
     private final OkHttpClient client = new OkHttpClient();
 
     public interface PineconeCallback {
         void onSuccess(String context);
         void onError(String error);
+    }
+
+    public void upsert(float[] vector, String id, JSONObject metadata) {
+
+        try {
+            JSONObject body = new JSONObject();
+
+            JSONArray vectors = new JSONArray();
+
+            JSONObject vec = new JSONObject();
+            vec.put("id", id);
+            vec.put("values", new JSONArray(vector));
+            vec.put("metadata", metadata);
+
+            vectors.put(vec);
+            body.put("vectors", vectors);
+
+            Request request = new Request.Builder()
+                    .url("https://decyra-index-trb4i0f.svc.aped-4627-b74a.pinecone.io/vectors/upsert")
+                    .addHeader("Api-Key", API_KEY)
+                    .post(RequestBody.create(body.toString(),
+                            MediaType.get("application/json")))
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override public void onFailure(Call call, IOException e) {}
+                @Override public void onResponse(Call call, Response response) {}
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void query(float[] vector, PineconeCallback callback) {

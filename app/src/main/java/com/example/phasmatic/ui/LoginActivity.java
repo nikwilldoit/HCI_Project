@@ -1,6 +1,7 @@
 package com.example.phasmatic.ui;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,6 +28,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.phasmatic.R;
+import com.example.phasmatic.data.ai.PineconeClient;
+import com.example.phasmatic.data.ai.PineconeIndexer;
 import com.example.phasmatic.data.model.User;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.*;
@@ -47,6 +50,7 @@ public class LoginActivity extends AppCompatActivity {
     TextView txtDisplayInfoLog;
 
     Button captureButton;
+    Button loadPineCone;
     android.view.View cameraLayout, loginLayout;
 
     DatabaseReference usersRef;
@@ -64,6 +68,7 @@ public class LoginActivity extends AppCompatActivity {
     private String authenticatedUserId = null;
     private User authenticatedUser = null;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +80,7 @@ public class LoginActivity extends AppCompatActivity {
         btnRegisterLog = findViewById(R.id.btnRegisterLog);
         btnFaceLogin = findViewById(R.id.btnFaceLogin);
         txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
+        loadPineCone = findViewById(R.id.btnpinecone);
 
         viewFinder = findViewById(R.id.viewFinder);
         cameraLayout = findViewById(R.id.cameraLayout);
@@ -110,6 +116,12 @@ public class LoginActivity extends AppCompatActivity {
 
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
+
+        loadPineCone.setOnClickListener(v -> {
+            PineconeIndexer indexer = new PineconeIndexer(this);
+            indexer.indexPrograms();
+            txtDisplayInfoLog.setText("button pressed");//aftomata ftiaxnei embeddings kai stelnei sto Pinecone
+        });
     }
 
     private void loadFaceModel() {
