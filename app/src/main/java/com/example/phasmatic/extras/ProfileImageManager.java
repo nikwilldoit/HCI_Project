@@ -78,4 +78,15 @@ public class ProfileImageManager {
         File imageFile = new File(folder, userId + ".jpg");
         return imageFile.getAbsolutePath();
     }
+
+    public static byte[] bitmapToBytes(Bitmap bitmap) {
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

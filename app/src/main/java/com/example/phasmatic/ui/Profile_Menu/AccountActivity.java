@@ -14,8 +14,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
 import com.example.phasmatic.extras.ProfileImageManager;
+import com.example.phasmatic.extras.SupabaseStorageHelper;
 import com.example.phasmatic.ui.BackButtonHelper;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -70,9 +72,9 @@ public class AccountActivity extends AppCompatActivity {
                 this,
                 R.id.btnBack,
                 userId,
-                null,
-                null,
-                null
+                userFullName,
+                userEmail,
+                userPhone
         );
 
         FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
@@ -84,12 +86,7 @@ public class AccountActivity extends AppCompatActivity {
 
         loadUser();
         loadUserInfo();
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-        if (bitmap != null) {
-            imgProfilePhoto.setImageBitmap(bitmap);
-        } else {
-            imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
-        }
+        loadProfilePhotoFromSupabase();
 
         btnEditProfile.setOnClickListener(v -> {
             Intent i = new Intent(AccountActivity.this, EditProfileActivity.class);
@@ -140,12 +137,11 @@ public class AccountActivity extends AppCompatActivity {
             if (requestCode == PICK_IMAGE) {
                 try {
                     imageUri = data.getData();
-                    String savedPath = ProfileImageManager.saveUri(this, userId, imageUri);
-
-                    if (savedPath != null) {
-                        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-                        imgProfilePhoto.setImageBitmap(bitmap);
-                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show();
+                    if (imageUri != null) {
+                        // local cache (optional)
+                        ProfileImageManager.saveUri(this, userId, imageUri);
+                        // upload στο Supabase και αποθήκευση URL στο Firebase
+                        uploadToSupabaseAndSaveUrl(imageUri);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -155,12 +151,14 @@ public class AccountActivity extends AppCompatActivity {
             if (requestCode == TAKE_PHOTO) {
                 try {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
-                    String savedPath = ProfileImageManager.saveBitmap(this, userId, photo);
+                    if (photo != null) {
+                        // local cache (optional)
+                        ProfileImageManager.saveBitmap(this, userId, photo);
 
-                    if (savedPath != null) {
-                        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-                        imgProfilePhoto.setImageBitmap(bitmap);
-                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show();
+                        byte[] bytes = ProfileImageManager.bitmapToBytes(photo);
+                        if (bytes != null) {
+                            uploadBytesToSupabaseAndSaveUrl(bytes);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -169,6 +167,53 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
+    private void uploadToSupabaseAndSaveUrl(Uri uri) {
+        if (userId == null || userId.isEmpty()) return;
+
+        new Thread(() -> {
+            try {
+                java.io.InputStream is = getContentResolver().openInputStream(uri);
+                if (is == null) return;
+                byte[] bytes = SupabaseStorageHelper.readAllBytes(is);
+                is.close();
+
+                uploadBytesToSupabaseAndSaveUrl(bytes);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() ->
+                        Toast.makeText(AccountActivity.this,
+                                "Error reading image", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private void uploadBytesToSupabaseAndSaveUrl(byte[] bytes) {
+        if (userId == null || userId.isEmpty()) return;
+
+        String path = "profiles/" + userId + ".jpg";
+
+        String publicUrl = SupabaseStorageHelper.uploadImageBytes(bytes, path);
+
+        if (publicUrl != null) {
+            usersRef.child(userId).child("profileImageUrl").setValue(publicUrl)
+                    .addOnSuccessListener(unused -> runOnUiThread(() -> {
+                        Glide.with(AccountActivity.this)
+                                .load(publicUrl)
+                                .placeholder(R.drawable.baseline_face_24)
+                                .into(imgProfilePhoto);
+                        Toast.makeText(AccountActivity.this,
+                                "Profile photo updated", Toast.LENGTH_SHORT).show();
+                    }))
+                    .addOnFailureListener(e -> runOnUiThread(() ->
+                            Toast.makeText(AccountActivity.this,
+                                    "Failed to save URL", Toast.LENGTH_SHORT).show()));
+        } else {
+            runOnUiThread(() ->
+                    Toast.makeText(AccountActivity.this,
+                            "Upload failed", Toast.LENGTH_SHORT).show());
+        }
+    }
 
     private void loadUser() {
         if (userId == null || userId.isEmpty()) return;
@@ -212,16 +257,28 @@ public class AccountActivity extends AppCompatActivity {
         });
     }
 
+    private void loadProfilePhotoFromSupabase() {
+        if (userId == null || userId.isEmpty()) return;
+
+        usersRef.child(userId).child("profileImageUrl").get().addOnSuccessListener(snapshot -> {
+            String url = snapshot.getValue(String.class);
+            if (url != null && !url.isEmpty()) {
+                Glide.with(AccountActivity.this)
+                        .load(url)
+                        .placeholder(R.drawable.baseline_face_24)
+                        .error(R.drawable.baseline_face_24)
+                        .into(imgProfilePhoto);
+            } else {
+                imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
+            }
+        });
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         loadUser();
         loadUserInfo();
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-        if (bitmap != null) {
-            imgProfilePhoto.setImageBitmap(bitmap);
-        } else {
-            imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
-        }
+        loadProfilePhotoFromSupabase();
     }
 }
