@@ -104,6 +104,16 @@
             android:textSize="16sp" />
 
         <Button
+            android:id="@+id/btnforgotPass"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:backgroundTint="#FF4CAF50"
+            android:text="Forgot Password"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <Button
             android:id="@+id/btnRegisterLog"
             android:layout_width="match_parent"
             android:layout_height="48dp"
