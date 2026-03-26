@@ -115,17 +115,17 @@ public class RegisterActivity extends AppCompatActivity {
             finish();
         });
 
-        // Capture face (μετά ανοίγει η κάμερα)
+        // Capture face
         btnCaptureFace.setOnClickListener(v -> {
             cameraLayout.setVisibility(android.view.View.VISIBLE);
             registerLayout.setVisibility(android.view.View.GONE);
             checkCameraPermission();
         });
 
-        // Register user
+        //Register user
         btnRegisterReg.setOnClickListener(v -> registerUser());
 
-        // Load TFLite model
+        //Load TFLite model
         try {
             AssetFileDescriptor fileDescriptor = getAssets().openFd("facenet.tflite");
             FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());

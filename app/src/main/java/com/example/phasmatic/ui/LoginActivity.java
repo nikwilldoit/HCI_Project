@@ -31,8 +31,10 @@ import com.example.phasmatic.R;
 import com.example.phasmatic.data.ai.PineconeClient;
 import com.example.phasmatic.data.ai.PineconeIndexer;
 import com.example.phasmatic.data.model.User;
+import com.example.phasmatic.ui.Profile_Menu.ForgetActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.*;
+
 
 import org.tensorflow.lite.Interpreter;
 
@@ -46,7 +48,7 @@ import java.util.Locale;
 public class LoginActivity extends AppCompatActivity {
 
     EditText edtEmailAddressLog, edtPasswordLog;
-    Button btnLoginLog, btnRegisterLog, btnFaceLogin;
+    Button btnLoginLog, btnRegisterLog, btnFaceLogin, btnForgotPass;
     TextView txtDisplayInfoLog;
 
     Button captureButton;
@@ -80,6 +82,7 @@ public class LoginActivity extends AppCompatActivity {
         btnRegisterLog = findViewById(R.id.btnRegisterLog);
         btnFaceLogin = findViewById(R.id.btnFaceLogin);
         txtDisplayInfoLog = findViewById(R.id.txtDisplayInfoLog);
+        btnForgotPass = findViewById(R.id.btnforgotPass);
 
         viewFinder = findViewById(R.id.viewFinder);
         cameraLayout = findViewById(R.id.cameraLayout);
@@ -97,6 +100,10 @@ public class LoginActivity extends AppCompatActivity {
         userInfoRef = firebaseDb.getReference("user_info");
 
         loadFaceModel();
+
+        btnForgotPass.setOnClickListener(v->
+                startActivity(new Intent(this, ForgetActivity.class)));
+
 
         btnRegisterLog.setOnClickListener(v ->
                 startActivity(new Intent(this, RegisterActivity.class)));
