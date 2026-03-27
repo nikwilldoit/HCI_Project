@@ -155,7 +155,7 @@ public class AccountActivity extends AppCompatActivity {
                             .getBitmap(getContentResolver(), imageUri);
 
                     imgProfilePhoto.setImageBitmap(bitmap);
-                    // optional local cache
+                    //optional local cache
                     ProfileImageManager.saveBitmap(this, userId, bitmap);
 
                     uploadImageToSupabase(bitmap);
@@ -182,7 +182,6 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
-    // ---------- Supabase upload ----------
 
     private void uploadImageToSupabase(Bitmap bitmap) {
         if (userId == null || userId.isEmpty()) return;
@@ -223,7 +222,7 @@ public class AccountActivity extends AppCompatActivity {
 
                 // public bucket -> public URL
                 String publicUrl = SUPABASE_URL + "/storage/v1/object/public/" +
-                        SUPABASE_BUCKET + "/" + path;   // μοτίβο από docs [web:12][web:24]
+                        SUPABASE_BUCKET + "/" + path;
 
                 saveProfileImageUrlToFirebase(publicUrl);
 
@@ -246,7 +245,6 @@ public class AccountActivity extends AppCompatActivity {
         usersRef.child(userId).child("profileImageUrl").setValue(url);
     }
 
-    // ---------- Load user & info ----------
 
     private void loadUser() {
         if (userId == null || userId.isEmpty()) return;
