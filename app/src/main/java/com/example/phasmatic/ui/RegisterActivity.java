@@ -48,6 +48,9 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.AuthResult;
+
 public class RegisterActivity extends AppCompatActivity {
 
     EditText edtEmailAddressReg, edtPasswordReg, edtFullNameReg, edtPhoneNumberReg;
@@ -56,8 +59,12 @@ public class RegisterActivity extends AppCompatActivity {
 
     private Interpreter tflite;
     private Toast currentToast;
+
     DatabaseReference usersRef;
     DatabaseReference usersfaceembeddingRef;
+    private FirebaseAuth mAuth;
+
+
     private static final int CAMERA_PERMISSION_CODE = 100;
 
     private PreviewView viewFinder;
@@ -109,6 +116,8 @@ public class RegisterActivity extends AppCompatActivity {
         usersRef = firebaseDb.getReference("users");
         usersfaceembeddingRef = firebaseDb.getReference("users_face_embedding");
 
+        mAuth = FirebaseAuth.getInstance();
+
         // Go to login
         btnLoginReg.setOnClickListener(v -> {
             startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
@@ -140,9 +149,9 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void registerUser() {
         String fullname = edtFullNameReg.getText().toString().trim();
-        String email    = edtEmailAddressReg.getText().toString().trim();
+        String email = edtEmailAddressReg.getText().toString().trim();
         String password = edtPasswordReg.getText().toString().trim();
-        String phone    = edtPhoneNumberReg.getText().toString().trim();
+        String phone = edtPhoneNumberReg.getText().toString().trim();
 
         if (fullname.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Full name, email and password are required", Toast.LENGTH_SHORT).show();
@@ -156,22 +165,54 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        String userId = usersRef.push().getKey();
-        String user_face_embeddingId = usersfaceembeddingRef.push().getKey();
+        //1 dhmiourgia xrhsth sto Firebase Auth
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
 
-        if (userId != null) {
-            User user = new User(userId, fullname, email, password, phone);
-            User_Face_Embedding userFaceEmbedding = new User_Face_Embedding(user_face_embeddingId, userId, finalEmbeddingsList, user);
+                        String uid = mAuth.getCurrentUser().getUid();
 
-            usersRef.child(userId).setValue(user)
-                    .addOnSuccessListener(unused -> usersfaceembeddingRef.child(user_face_embeddingId)
-                            .setValue(userFaceEmbedding)
-                            .addOnSuccessListener(u -> {
-                                Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                                finish();
-                            }));
-        }
+                        String user_face_embeddingId = usersfaceembeddingRef.push().getKey();
+
+                        //2 apothikeush sto Realtime Database me to idio uid
+                        User user = new User(uid, fullname, email, password, phone);
+                        User_Face_Embedding userFaceEmbedding =
+                                new User_Face_Embedding(user_face_embeddingId, uid, finalEmbeddingsList, user);
+
+                        usersRef.child(uid).setValue(user)
+                                .addOnSuccessListener(unused ->
+                                        usersfaceembeddingRef.child(user_face_embeddingId)
+                                                .setValue(userFaceEmbedding)
+                                                .addOnSuccessListener(u -> {
+                                                    Toast.makeText(this,
+                                                            "Registration successful",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    startActivity(new Intent(RegisterActivity.this,
+                                                            LoginActivity.class));
+                                                    finish();
+                                                }))
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this,
+                                                "Error saving user data: " + e.getMessage(),
+                                                Toast.LENGTH_LONG).show());
+
+                    }
+                    else {
+                        String msg = "Registration failed";
+                        if (task.getException() != null &&
+                                task.getException().getMessage() != null) {
+
+                            String raw = task.getException().getMessage();
+
+                            if (raw.contains("Password should be at least 6 characters")) {
+                                msg = "Password must be at least 6 characters";
+                            } else {
+                                msg = raw;
+                            }
+                        }
+                        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     // CAMERA
