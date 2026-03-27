@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.Message;
 import com.example.phasmatic.extras.ProfileImageManager;
@@ -57,6 +58,7 @@ public class ChatActivity extends AppCompatActivity {
     private ProfileMenuHelper profileMenuHelper;
 
     private String conversationKey = null;
+    private DatabaseReference usersRef;
 
     private final FirebaseDatabase db = FirebaseDatabase.getInstance(
             "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
@@ -81,6 +83,13 @@ public class ChatActivity extends AppCompatActivity {
         String userEmail = getIntent().getStringExtra("userEmail");
         String userPhone = getIntent().getStringExtra("userPhone");
 
+
+        FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
+                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+        );
+        usersRef = firebaseDb.getReference("users");
+
+
         profileMenuHelper = new ProfileMenuHelper(
                 this,
                 currentUid,
@@ -90,6 +99,7 @@ public class ChatActivity extends AppCompatActivity {
         );
 
         imgProfile.setOnClickListener(v -> profileMenuHelper.showProfileMenu(v));
+        loadProfilePhoto();
 
         txtChatWith.setText(otherName != null ? otherName : "Chat");
 
@@ -106,7 +116,6 @@ public class ChatActivity extends AppCompatActivity {
 
         btnSend.setOnClickListener(v -> sendMessage());
 
-        loadProfilePhoto();
         findOrCreateConversation();
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
@@ -150,12 +159,32 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void loadProfilePhoto() {
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, currentUid);
-        if (bitmap != null) {
-            imgProfile.setImageBitmap(bitmap);
-        } else {
+        if (currentUid == null || currentUid.isEmpty()) {
             imgProfile.setImageResource(R.drawable.baseline_face_24);
+            return;
         }
+
+        usersRef.child(currentUid).get().addOnSuccessListener(snapshot -> {
+            String profileImageUrl = snapshot.child("profileImageUrl").getValue(String.class);
+
+            if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                String displayUrl = profileImageUrl + "?t=" + System.currentTimeMillis();
+
+                Glide.with(this)
+                        .load(displayUrl)
+                        .placeholder(R.drawable.baseline_face_24)
+                        .error(R.drawable.baseline_face_24)
+                        .into(imgProfile);
+            } else {
+                // fallback se local cache an uparxei
+                Bitmap bitmap = ProfileImageManager.loadBitmap(this, currentUid);
+                if (bitmap != null) {
+                    imgProfile.setImageBitmap(bitmap);
+                } else {
+                    imgProfile.setImageResource(R.drawable.baseline_face_24);
+                }
+            }
+        });
     }
 
     //den ftiaxnei neo an uparxei hdh

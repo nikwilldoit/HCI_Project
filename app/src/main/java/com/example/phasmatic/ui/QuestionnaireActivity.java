@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.UserExpectation;
 import com.example.phasmatic.ui.Profile_Menu.ProfileMenuHelper;
@@ -51,6 +52,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
     private DatabaseReference expectationsRef;
     private DatabaseReference questionsRef;
+    private DatabaseReference usersRef;
 
 
     @Override
@@ -81,6 +83,11 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 userEmail,
                 userPhone
         );
+
+        FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
+                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+        );
+        usersRef = firebaseDb.getReference("users");
 
         profileMenuHelper = new ProfileMenuHelper(
                 this,
@@ -159,12 +166,32 @@ public class QuestionnaireActivity extends AppCompatActivity {
     }
 
     private void loadProfilePhoto() {
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-        if (bitmap != null) {
-            imgProfile.setImageBitmap(bitmap);
-        } else {
+        if (userId == null || userId.isEmpty()) {
             imgProfile.setImageResource(R.drawable.baseline_face_24);
+            return;
         }
+
+        usersRef.child(userId).get().addOnSuccessListener(snapshot -> {
+            String profileImageUrl = snapshot.child("profileImageUrl").getValue(String.class);
+
+            if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                String displayUrl = profileImageUrl + "?t=" + System.currentTimeMillis();
+
+                Glide.with(this)
+                        .load(displayUrl)
+                        .placeholder(R.drawable.baseline_face_24)
+                        .error(R.drawable.baseline_face_24)
+                        .into(imgProfile);
+            } else {
+                // fallback se local cache an uparxei
+                Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+                if (bitmap != null) {
+                    imgProfile.setImageBitmap(bitmap);
+                } else {
+                    imgProfile.setImageResource(R.drawable.baseline_face_24);
+                }
+            }
+        });
     }
 
     private void startSpeechRecognizer() {

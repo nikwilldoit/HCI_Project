@@ -99,4 +99,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation "io.pinecone:pinecone-client:5.1.0"
 
+    //gia thn fortwsh eikonwn
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 }

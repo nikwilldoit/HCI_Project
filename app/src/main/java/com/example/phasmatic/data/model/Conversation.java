@@ -8,6 +8,8 @@ public class Conversation {
     public String timeLastMessage;
 
     public String otherName;
+    public String otherUserId;
+    public String otherProfileUrl;
 
     public Conversation() {
     }

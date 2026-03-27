@@ -39,7 +39,7 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        // PROSOXH: profileUid = o allos, currentUserId = logged-in
+        //PROSOXH profileUid = o allos, currentUserId = logged-in
         profileUid    = intent.getStringExtra("userId");        // other user
         currentUserId = intent.getStringExtra("currentUserId"); // logged-in
 
