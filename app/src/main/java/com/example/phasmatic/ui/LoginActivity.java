@@ -45,6 +45,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.AuthResult;
+
 public class LoginActivity extends AppCompatActivity {
 
     EditText edtEmailAddressLog, edtPasswordLog;
@@ -69,6 +72,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private String authenticatedUserId = null;
     private User authenticatedUser = null;
+
+    private FirebaseAuth mAuth;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -98,6 +103,8 @@ public class LoginActivity extends AppCompatActivity {
         usersRef = firebaseDb.getReference("users");
         usersFaceRef = firebaseDb.getReference("users_face_embedding");
         userInfoRef = firebaseDb.getReference("user_info");
+
+        mAuth = FirebaseAuth.getInstance();
 
         loadFaceModel();
 
@@ -150,42 +157,49 @@ public class LoginActivity extends AppCompatActivity {
 
     private void loginWithFirebase(String email, String password) {
 
-        usersRef.orderByChild("email").equalTo(email)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+        //Login sto Firebase Authentication
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
 
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-
-                        if (!snapshot.exists()) {
-                            txtDisplayInfoLog.setText("Incorrect credentials");
-                            return;
-                        }
-
-                        for (DataSnapshot child : snapshot.getChildren()) {
-
-                            User user = child.getValue(User.class);
-
-                            if (user != null && password.equals(user.getPassword())) {
-
-                                authenticatedUserId = user.getId();
-                                authenticatedUser = user;
-
-                                Toast.makeText(LoginActivity.this,
-                                        "Password OK. Scan your face.",
-                                        Toast.LENGTH_LONG).show();
-
-                                btnFaceLogin.setEnabled(true);
-                                return;
-                            }
-                        }
-
+                    if (!task.isSuccessful()) {
                         txtDisplayInfoLog.setText("Incorrect credentials");
+                        return;
                     }
 
-                    @Override
-                    public void onCancelled(DatabaseError error) {
-                        txtDisplayInfoLog.setText("Database error");
-                    }
+                    //epituxia sto auth
+                    String uid = mAuth.getCurrentUser().getUid();
+
+                    //load the user from db
+                    usersRef.child(uid)
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot snapshot) {
+
+                                    User user = snapshot.getValue(User.class);
+
+                                    if (user == null) {
+                                        txtDisplayInfoLog.setText("User profile not found");
+                                        return;
+                                    }
+
+                                    // 3)enhmerwse to password field sto DB
+                                    usersRef.child(uid).child("password").setValue(password);
+
+                                    authenticatedUserId = uid;
+                                    authenticatedUser   = user;
+
+                                    Toast.makeText(LoginActivity.this,
+                                            "Password OK. Scan your face.",
+                                            Toast.LENGTH_LONG).show();
+
+                                    btnFaceLogin.setEnabled(true);
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError error) {
+                                    txtDisplayInfoLog.setText("Database error");
+                                }
+                            });
                 });
     }
 
