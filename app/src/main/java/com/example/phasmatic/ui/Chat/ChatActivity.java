@@ -40,7 +40,7 @@ import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private ImageButton btnBack, btnSend, btnVoice;
+    private ImageButton btnBack, btnSend, btnVoice, btnVideoCall;
     private TextView txtChatWith;
     private EditText etMessage;
     private RecyclerView rvMessages;
@@ -76,6 +76,7 @@ public class ChatActivity extends AppCompatActivity {
         etMessage   = findViewById(R.id.etMessage);
         rvMessages  = findViewById(R.id.rvMessages);
         imgProfile  = findViewById(R.id.imgProfile);
+        btnVideoCall = findViewById(R.id.btnvideoCall);
 
         currentUid = getIntent().getStringExtra("userId");
         otherUid   = getIntent().getStringExtra("otherUid");
@@ -119,6 +120,28 @@ public class ChatActivity extends AppCompatActivity {
         findOrCreateConversation();
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
+
+        String callId = db.getReference("calls").push().getKey();
+
+        DatabaseReference callRef = db.getReference("calls").child(callId);
+
+        callRef.child("status").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                String status = snapshot.getValue(String.class);
+
+                if ("accepted".equals(status)) {
+
+                    Intent intent = new Intent(ChatActivity.this, VideoCallActivity.class);
+                    intent.putExtra("channelName", conversationKey);
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void startSpeechRecognizer() {
@@ -298,3 +321,5 @@ public class ChatActivity extends AppCompatActivity {
                 .format(new Date());
     }
 }
+
+
