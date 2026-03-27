@@ -12,6 +12,8 @@ public class User {
     private String phoneNumber;
 //    private List<Double> faceEmbedding;
 
+    private String profileImageUrl;
+
     public User(){
     }
 
@@ -21,6 +23,24 @@ public class User {
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
+    }
+
+    public User(String id, String fullName, String email,
+                String password, String phoneNumber, String profileImageUrl) {
+        this.id = id;
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public String getId() {

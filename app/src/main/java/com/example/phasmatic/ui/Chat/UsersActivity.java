@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.Conversation;
 import com.example.phasmatic.extras.ProfileImageManager;
@@ -60,6 +61,11 @@ public class UsersActivity extends AppCompatActivity {
 
         BackButtonHelper.attachToGoModeSelection(this, R.id.btnBack, userId, userFullName, userEmail, userPhone);
 
+        FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
+                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+        );
+        usersRef = firebaseDb.getReference("users");
+
         profileMenuHelper = new ProfileMenuHelper(
                 this,
                 userId,
@@ -93,12 +99,36 @@ public class UsersActivity extends AppCompatActivity {
     }
 
     private void loadProfilePhoto() {
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-        if (bitmap != null) {
-            imgProfile.setImageBitmap(bitmap);
-        } else {
+        if (userId == null || userId.isEmpty()) {
             imgProfile.setImageResource(R.drawable.baseline_face_24);
+            return;
         }
+
+        FirebaseDatabase firebaseDb = FirebaseDatabase.getInstance(
+                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+        );
+        DatabaseReference usersRefLocal = firebaseDb.getReference("users");
+
+        usersRefLocal.child(userId).get().addOnSuccessListener(snapshot -> {
+            String profileImageUrl = snapshot.child("profileImageUrl").getValue(String.class);
+
+            if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                String displayUrl = profileImageUrl + "?t=" + System.currentTimeMillis();
+
+                Glide.with(this)
+                        .load(displayUrl)
+                        .placeholder(R.drawable.baseline_face_24)
+                        .error(R.drawable.baseline_face_24)
+                        .into(imgProfile);
+            } else {
+                Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
+                if (bitmap != null) {
+                    imgProfile.setImageBitmap(bitmap);
+                } else {
+                    imgProfile.setImageResource(R.drawable.baseline_face_24);
+                }
+            }
+        });
     }
 
     private void loadConversations() {

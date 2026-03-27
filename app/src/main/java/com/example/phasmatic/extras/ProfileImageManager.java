@@ -66,16 +66,4 @@ public class ProfileImageManager {
 
         return null;
     }
-
-    public static boolean hasImage(Context context, String userId) {
-        File folder = new File(context.getFilesDir(), FOLDER_NAME);
-        File imageFile = new File(folder, userId + ".jpg");
-        return imageFile.exists();
-    }
-
-    public static String getImagePath(Context context, String userId) {
-        File folder = new File(context.getFilesDir(), FOLDER_NAME);
-        File imageFile = new File(folder, userId + ".jpg");
-        return imageFile.getAbsolutePath();
-    }
 }

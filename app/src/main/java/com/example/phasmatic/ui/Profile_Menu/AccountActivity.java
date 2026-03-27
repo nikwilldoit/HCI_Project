@@ -14,13 +14,28 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
 import com.example.phasmatic.extras.ProfileImageManager;
 import com.example.phasmatic.ui.BackButtonHelper;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class AccountActivity extends AppCompatActivity {
+
+    // ---------- Supabase ----------
+    private static final String SUPABASE_URL = "https://sbzxqcwvbbgbpykyvmfa.supabase.co";
+    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNienhxY3d2YmJnYnB5a3l2bWZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MjcwNDEsImV4cCI6MjA5MDAwMzA0MX0.oUc-uXUKPE6HJS7peW3ytfW1H5uSTFP6vUa_8Zn7iuo";
+    private static final String SUPABASE_BUCKET = "avatars";
 
     ImageButton btnBack;
     private Button btnEditProfile, btnEditAcademic;
@@ -39,6 +54,8 @@ public class AccountActivity extends AppCompatActivity {
 
     private DatabaseReference usersRef;
     private DatabaseReference userInfoRef;
+
+    private OkHttpClient httpClient = new OkHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,12 +101,6 @@ public class AccountActivity extends AppCompatActivity {
 
         loadUser();
         loadUserInfo();
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-        if (bitmap != null) {
-            imgProfilePhoto.setImageBitmap(bitmap);
-        } else {
-            imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
-        }
 
         btnEditProfile.setOnClickListener(v -> {
             Intent i = new Intent(AccountActivity.this, EditProfileActivity.class);
@@ -140,14 +151,16 @@ public class AccountActivity extends AppCompatActivity {
             if (requestCode == PICK_IMAGE) {
                 try {
                     imageUri = data.getData();
-                    String savedPath = ProfileImageManager.saveUri(this, userId, imageUri);
+                    Bitmap bitmap = MediaStore.Images.Media
+                            .getBitmap(getContentResolver(), imageUri);
 
-                    if (savedPath != null) {
-                        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-                        imgProfilePhoto.setImageBitmap(bitmap);
-                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
+                    imgProfilePhoto.setImageBitmap(bitmap);
+                    // optional local cache
+                    ProfileImageManager.saveBitmap(this, userId, bitmap);
+
+                    uploadImageToSupabase(bitmap);
+
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -155,13 +168,13 @@ public class AccountActivity extends AppCompatActivity {
             if (requestCode == TAKE_PHOTO) {
                 try {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
-                    String savedPath = ProfileImageManager.saveBitmap(this, userId, photo);
 
-                    if (savedPath != null) {
-                        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-                        imgProfilePhoto.setImageBitmap(bitmap);
-                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show();
-                    }
+                    imgProfilePhoto.setImageBitmap(photo);
+                    // optional local cache
+                    ProfileImageManager.saveBitmap(this, userId, photo);
+
+                    uploadImageToSupabase(photo);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -169,6 +182,71 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
+    // ---------- Supabase upload ----------
+
+    private void uploadImageToSupabase(Bitmap bitmap) {
+        if (userId == null || userId.isEmpty()) return;
+
+        new Thread(() -> {
+            try {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);
+                byte[] imageBytes = bos.toByteArray();
+
+                String path = userId + ".jpg";
+                String url = SUPABASE_URL + "/storage/v1/object/" +
+                        SUPABASE_BUCKET + "/" + path;
+
+                RequestBody body = RequestBody.create(
+                        imageBytes,
+                        MediaType.parse("image/jpeg")
+                );
+
+                Request request = new Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .addHeader("apikey", SUPABASE_KEY)
+                        .addHeader("Authorization", "Bearer " + SUPABASE_KEY)
+                        .addHeader("Content-Type", "image/jpeg")
+                        .addHeader("x-upsert", "true")   //epitrepei overwrite
+                        .build();
+
+                Response response = httpClient.newCall(request).execute();
+
+                if (!response.isSuccessful()) {
+                    String msg = "Upload failed: " + response.code();
+                    runOnUiThread(() ->
+                            Toast.makeText(AccountActivity.this, msg,
+                                    Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                // public bucket -> public URL
+                String publicUrl = SUPABASE_URL + "/storage/v1/object/public/" +
+                        SUPABASE_BUCKET + "/" + path;   // μοτίβο από docs [web:12][web:24]
+
+                saveProfileImageUrlToFirebase(publicUrl);
+
+                runOnUiThread(() ->
+                        Toast.makeText(AccountActivity.this,
+                                "Profile photo updated", Toast.LENGTH_SHORT).show());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() ->
+                        Toast.makeText(AccountActivity.this,
+                                "Upload error: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    private void saveProfileImageUrlToFirebase(String url) {
+        if (userId == null || userId.isEmpty()) return;
+        usersRef.child(userId).child("profileImageUrl").setValue(url);
+    }
+
+    // ---------- Load user & info ----------
 
     private void loadUser() {
         if (userId == null || userId.isEmpty()) return;
@@ -179,10 +257,30 @@ public class AccountActivity extends AppCompatActivity {
             userFullName = snapshot.child("fullName").getValue(String.class);
             userEmail = snapshot.child("email").getValue(String.class);
             userPhone = snapshot.child("phoneNumber").getValue(String.class);
+            String profileImageUrl = snapshot.child("profileImageUrl").getValue(String.class);
 
             txtFullName.setText(userFullName != null ? userFullName : "-");
             txtEmail.setText(userEmail != null ? userEmail : "-");
             txtPhone.setText(userPhone != null ? userPhone : "-");
+
+            if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                String displayUrl = profileImageUrl + "?v=" + System.currentTimeMillis();
+
+                Glide.with(this)
+                        .load(displayUrl)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                        .skipMemoryCache(true)
+                        .placeholder(R.drawable.baseline_face_24)
+                        .error(R.drawable.baseline_face_24)
+                        .into(imgProfilePhoto);
+            } else {
+                Bitmap cached = ProfileImageManager.loadBitmap(this, userId);
+                if (cached != null) {
+                    imgProfilePhoto.setImageBitmap(cached);
+                } else {
+                    imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
+                }
+            }
         });
     }
 
@@ -217,11 +315,5 @@ public class AccountActivity extends AppCompatActivity {
         super.onResume();
         loadUser();
         loadUserInfo();
-        Bitmap bitmap = ProfileImageManager.loadBitmap(this, userId);
-        if (bitmap != null) {
-            imgProfilePhoto.setImageBitmap(bitmap);
-        } else {
-            imgProfilePhoto.setImageResource(R.drawable.baseline_face_24);
-        }
     }
 }
