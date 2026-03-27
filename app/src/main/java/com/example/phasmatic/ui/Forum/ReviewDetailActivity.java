@@ -159,6 +159,7 @@ public class ReviewDetailActivity extends AppCompatActivity {
                 comments,
                 userNameMap,
                 userAcademicMap,
+                usersRef,
                 comment -> {
                     Intent i = new Intent(ReviewDetailActivity.this, PublicProfileActivity.class);
                     //currentUserId = o xrhsths pou einai logged-in (userId tou ReviewDetailActivity)
