@@ -142,7 +142,7 @@ public class ChatActivity extends AppCompatActivity {
             callListener.stop();
         }
     }
-    
+
 
     private void setupVideoCall() {
 
@@ -158,7 +158,14 @@ public class ChatActivity extends AppCompatActivity {
                     conversationKey
             );
 
-            listenCallStatus(callId);
+            if (callId == null) return;
+
+            Intent i = new Intent(ChatActivity.this, OutgoingCallActivity.class);
+            i.putExtra("callId", callId);
+            i.putExtra("channelName", conversationKey);
+            i.putExtra("otherUid", otherUid);
+            i.putExtra("otherName", otherName);
+            startActivity(i);
         });
     }
 
