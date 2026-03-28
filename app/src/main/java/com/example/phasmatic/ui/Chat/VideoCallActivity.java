@@ -23,6 +23,8 @@ import io.agora.rtc2.IRtcEngineEventHandler;
 import io.agora.rtc2.RtcEngine;
 import io.agora.rtc2.video.VideoCanvas;
 
+
+
 public class VideoCallActivity extends AppCompatActivity {
 
     private RtcEngine agoraEngine;
