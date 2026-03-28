@@ -11,6 +11,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.phasmatic.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import io.agora.rtc2.ChannelMediaOptions;
 import io.agora.rtc2.Constants;
@@ -23,9 +28,11 @@ public class VideoCallActivity extends AppCompatActivity {
     private RtcEngine agoraEngine;
 
     private final String APP_ID = "0f9cc9d655b347fb852d60aef0fcf693";
-    private final String TOKEN = null; // ή από server
+    private final String TOKEN = null;
 
     private String channelName;
+    private String callId;
+
 
     private FrameLayout localContainer;
     private FrameLayout remoteContainer;
@@ -41,6 +48,7 @@ public class VideoCallActivity extends AppCompatActivity {
         remoteContainer = findViewById(R.id.remoteVideoContainer);
 
         findViewById(R.id.btnEndCall).setOnClickListener(v -> {
+            new CallManager().endCall(callId);
             finish();
         });
 
@@ -53,9 +61,10 @@ public class VideoCallActivity extends AppCompatActivity {
         });
 
         requestPermissions();
-    }
+        callId = getIntent().getStringExtra("callId");
+        listenCallStatus();
 
-    // 🔐 Permissions
+    }
     private void requestPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -69,14 +78,37 @@ public class VideoCallActivity extends AppCompatActivity {
             initAgora();
         }
     }
+    private void listenCallStatus() {
+
+        DatabaseReference callRef = FirebaseDatabase.getInstance(
+                "https://mega-5a5b4-default-rtdb.europe-west1.firebasedatabase.app"
+        ).getReference("calls").child(callId);
+
+        callRef.child("status").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                String status = snapshot.getValue(String.class);
+
+                if ("ended".equals(status) || "rejected".equals(status)) {
+                    finish();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+
+        });
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         initAgora();
     }
-
-    // 🔧 Init Agora
     private void initAgora() {
         try {
             agoraEngine = RtcEngine.create(getBaseContext(), APP_ID, rtcHandler);
@@ -89,8 +121,6 @@ public class VideoCallActivity extends AppCompatActivity {
         setupLocalVideo();
         joinChannel();
     }
-
-    // 📷 Local video
     private void setupLocalVideo() {
         SurfaceView localView = new SurfaceView(getBaseContext());
         localContainer.addView(localView);
@@ -100,7 +130,6 @@ public class VideoCallActivity extends AppCompatActivity {
         );
     }
 
-    // 🌐 Join channel (core)
     private void joinChannel() {
 
         ChannelMediaOptions options = new ChannelMediaOptions();

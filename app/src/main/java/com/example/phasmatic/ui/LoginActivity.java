@@ -75,7 +75,6 @@ public class LoginActivity extends AppCompatActivity {
     private User authenticatedUser = null;
 
     private FirebaseAuth mAuth;
-    CallListener listener;
 
 
 
@@ -138,17 +137,9 @@ public class LoginActivity extends AppCompatActivity {
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
 
-        CallListener listener;
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
-            listener = new CallListener(this, currentUid);
-            listener.start();
-        }
 
     }
+
 
     private void loadFaceModel() {
         try {
