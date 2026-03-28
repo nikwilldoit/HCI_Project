@@ -31,6 +31,7 @@ import com.example.phasmatic.R;
 import com.example.phasmatic.data.ai.PineconeClient;
 import com.example.phasmatic.data.ai.PineconeIndexer;
 import com.example.phasmatic.data.model.User;
+import com.example.phasmatic.ui.Chat.CallListener;
 import com.example.phasmatic.ui.Profile_Menu.ForgetActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.database.*;
@@ -74,6 +75,8 @@ public class LoginActivity extends AppCompatActivity {
     private User authenticatedUser = null;
 
     private FirebaseAuth mAuth;
+
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -134,7 +137,9 @@ public class LoginActivity extends AppCompatActivity {
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
 
+
     }
+
 
     private void loadFaceModel() {
         try {

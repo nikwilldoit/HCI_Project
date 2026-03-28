@@ -32,16 +32,19 @@ public class IncomingCallActivity extends AppCompatActivity {
     }
 
     private void acceptCall() {
-        callsRef.child(callId).child("status").setValue("accepted");
+
+        CallManager callManager = new CallManager();
+        callManager.acceptCall(callId);
 
         Intent intent = new Intent(this, VideoCallActivity.class);
         intent.putExtra("channelName", channelName);
+        intent.putExtra("callId", callId);
         startActivity(intent);
         finish();
     }
 
     private void rejectCall() {
-        callsRef.child(callId).child("status").setValue("rejected");
+        new CallManager().rejectCall(callId);
         finish();
     }
 }
