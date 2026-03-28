@@ -106,4 +106,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     implementation "io.pinecone:pinecone-client:5.1.0"
+
+    //rtc
+    implementation 'io.agora.rtc:full-sdk:4.2.3'
+
 }
