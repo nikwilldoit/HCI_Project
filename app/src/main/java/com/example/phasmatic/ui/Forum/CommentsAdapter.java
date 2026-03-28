@@ -1,6 +1,5 @@
 package com.example.phasmatic.ui.Forum;
 
-import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +9,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.phasmatic.R;
 import com.example.phasmatic.data.model.ReviewComment;
-import com.example.phasmatic.extras.ProfileImageManager;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,13 +29,17 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
     private final Map<String, String> academicMap;
     private final OnCommentUserClickListener userClickListener;
 
+    private final DatabaseReference usersRef;
+
     public CommentsAdapter(List<ReviewComment> items,
                            Map<String, String> nameMap,
                            Map<String, String> academicMap,
+                           DatabaseReference usersRef,
                            OnCommentUserClickListener userClickListener) {
         this.items = items;
         this.nameMap = nameMap != null ? nameMap : new HashMap<>();
         this.academicMap = academicMap != null ? academicMap : new HashMap<>();
+        this.usersRef = usersRef;
         this.userClickListener = userClickListener;
     }
 
@@ -62,11 +66,25 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
         h.txtCommentAcademic.setText(academic != null ? academic : "");
         h.txtCommentText.setText(c.comment_text != null ? c.comment_text : "");
 
-        Bitmap bitmap = ProfileImageManager.loadBitmap(h.itemView.getContext(), c.user_id);
-        if (bitmap != null) {
-            h.imgCommentUser.setImageBitmap(bitmap);
-        } else {
-            h.imgCommentUser.setImageResource(R.drawable.baseline_face_24);
+        //default eikona mexri na kanei load
+        h.imgCommentUser.setImageResource(R.drawable.baseline_face_24);
+
+        if (c.user_id != null && !c.user_id.isEmpty()) {
+            usersRef.child(c.user_id).get().addOnSuccessListener(snapshot -> {
+                String url = snapshot.child("profileImageUrl").getValue(String.class);
+                if (url != null && !url.isEmpty()) {
+                    String displayUrl = url + "?t=" + System.currentTimeMillis();
+                    Glide.with(h.itemView.getContext())
+                            .load(displayUrl)
+                            .placeholder(R.drawable.baseline_face_24)
+                            .error(R.drawable.baseline_face_24)
+                            .into(h.imgCommentUser);
+                } else {
+                    h.imgCommentUser.setImageResource(R.drawable.baseline_face_24);
+                }
+            }).addOnFailureListener(e ->
+                    h.imgCommentUser.setImageResource(R.drawable.baseline_face_24)
+            );
         }
 
         h.imgCommentUser.setOnClickListener(v -> {
