@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Button;
@@ -28,7 +27,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.phasmatic.R;
-import com.example.phasmatic.data.ai.PineconeClient;
 import com.example.phasmatic.data.ai.PineconeIndexer;
 import com.example.phasmatic.data.model.User;
 import com.example.phasmatic.ui.Profile_Menu.ForgetActivity;
@@ -46,7 +44,6 @@ import java.util.List;
 import java.util.Locale;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.AuthResult;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -74,6 +71,8 @@ public class LoginActivity extends AppCompatActivity {
     private User authenticatedUser = null;
 
     private FirebaseAuth mAuth;
+
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -134,7 +133,9 @@ public class LoginActivity extends AppCompatActivity {
         btnFaceLogin.setOnClickListener(v -> checkCameraPermission());
         captureButton.setOnClickListener(v -> takePhoto());
 
+
     }
+
 
     private void loadFaceModel() {
         try {

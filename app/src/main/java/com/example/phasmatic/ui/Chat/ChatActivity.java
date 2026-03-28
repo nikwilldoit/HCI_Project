@@ -40,7 +40,7 @@ import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private ImageButton btnBack, btnSend, btnVoice;
+    private ImageButton btnBack, btnSend, btnVoice, btnVideoCall;
     private TextView txtChatWith;
     private EditText etMessage;
     private RecyclerView rvMessages;
@@ -54,6 +54,8 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUid;
     private String otherUid;
     private String otherName;
+    CallListener callListener;
+
 
     private ProfileMenuHelper profileMenuHelper;
 
@@ -76,6 +78,7 @@ public class ChatActivity extends AppCompatActivity {
         etMessage   = findViewById(R.id.etMessage);
         rvMessages  = findViewById(R.id.rvMessages);
         imgProfile  = findViewById(R.id.imgProfile);
+        btnVideoCall = findViewById(R.id.btnvideoCall);
 
         currentUid = getIntent().getStringExtra("userId");
         otherUid   = getIntent().getStringExtra("otherUid");
@@ -117,9 +120,73 @@ public class ChatActivity extends AppCompatActivity {
         btnSend.setOnClickListener(v -> sendMessage());
 
         findOrCreateConversation();
+        setupVideoCall();
+
 
         btnVoice.setOnClickListener(v -> startSpeechRecognizer());
     }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //String currentUid = "βαλε_εδω_το_uid_του_user"; // πχ απο intent ή auth
+
+        callListener = new CallListener(this, currentUid);
+        callListener.start();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (callListener != null) {
+            callListener.stop();
+        }
+    }
+    
+
+    private void setupVideoCall() {
+
+        btnVideoCall.setOnClickListener(v -> {
+
+            if (conversationKey == null) return;
+
+            CallManager callManager = new CallManager();
+
+            String callId = callManager.startCall(
+                    currentUid,
+                    otherUid,
+                    conversationKey
+            );
+
+            listenCallStatus(callId);
+        });
+    }
+
+    private void listenCallStatus(String callId) {
+
+        DatabaseReference callRef = db.getReference("calls").child(callId);
+
+        callRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                String status = snapshot.child("status").getValue(String.class);
+                String channelName = snapshot.child("channelName").getValue(String.class);
+
+                if ("accepted".equals(status)) {
+
+                    Intent intent = new Intent(ChatActivity.this, VideoCallActivity.class);
+                    intent.putExtra("channelName", channelName);
+                    intent.putExtra("callId", callId);
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
 
     private void startSpeechRecognizer() {
         int REQUEST_SPEECH_RECOGNIZER = 3000;
@@ -298,3 +365,5 @@ public class ChatActivity extends AppCompatActivity {
                 .format(new Date());
     }
 }
+
+
