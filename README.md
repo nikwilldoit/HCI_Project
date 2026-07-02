@@ -52,7 +52,7 @@ The app does not focus only on generic recommendations. Instead, it aims to prov
 ### Cloud and Backend Infrastructure
 - **Firebase Realtime Database** as the main cloud database
 - **Firebase Authentication** for user login and password reset and for **Remember me** feature
-- **Firebase Cloud Messaging** for notifications
+- **Firebase Cloud Messaging** for [notifications]((app/src/main/java/com/example/decyra/extras/README.md))
 - **Supabase Edge Functions** for handling messaging-related requests
 - **Supabase Storage** for profile image storage
 - **MySQL** for our [database schema](db_schema/README.md)
