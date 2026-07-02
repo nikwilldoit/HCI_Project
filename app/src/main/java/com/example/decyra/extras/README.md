@@ -39,5 +39,6 @@ Android Notification
 6. `FCMTokenService` receives the notification, creates the appropriate notification channel, and displays it to the user.
 
 This architecture keeps Firebase credentials secure on the backend while providing a scalable and maintainable notification delivery mechanism.
+
 <img width="394" height="452" alt="image" src="https://github.com/user-attachments/assets/9402a379-06f0-4fab-b591-74c24c1d3491" />   <img width="392" height="156" alt="image" src="https://github.com/user-attachments/assets/2169a56a-fef4-4a3b-8e6b-d5d232143ded" />
 
