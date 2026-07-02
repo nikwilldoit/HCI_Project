@@ -17,7 +17,7 @@ The application implements a **Retrieval-Augmented Generation (RAG)** pipeline w
 
    * The LLM receives only the **last six messages** of the conversation retrieved from **Firebase**, allowing it to answer using the recent chat context without performing vector search.
 5. The **LLM** generates a context-aware response while following the predefined system instructions.
-6. The generated response is stored in **Firebase** and returned to the user's interface. Under normal operating conditions, the complete pipeline responds in **less than 10 seconds** *(assuming a stable internet connection)*.
+6. The generated response is stored in **Firebase** and returned to the user's interface. Under normal operating conditions, the complete pipeline responds in **about 10 seconds** *(assuming a stable internet connection)*.
 
 ## Performance Optimizations
 
