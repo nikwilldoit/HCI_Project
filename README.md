@@ -104,12 +104,6 @@ The codebase includes a total of 100 files:
 
 The project was evaluated through user research, expert feedback, and usability testing. Results showed strong interest in an app of this type, especially for the AI mentor and forum features, while usability scores were high for chatbot performance, registration flow, and navigation.
 
-## Academic Context
-
-Department of Informatics, Athens University of Economics and Business  
-Course: Human-Computer Interaction  
-Professor: A. A. Vasilakis  
-Spring Semester 2025-26
 
 ## Developers
 
